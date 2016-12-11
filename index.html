@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文档 | 高德地图位置选择插件</title>
+
+    <!-- Bootstrap -->
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<style rel="stylesheet">
+	body{ font-family: Microsoft YaHei; padding-top:70px;}
+	ul.nav-tabs{
+        width: 140px;
+        margin-top: 20px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+    }
+    ul.nav-tabs li{
+        margin: 0;
+        border-top: 1px solid #ddd;
+    }
+    ul.nav-tabs li:first-child{
+        border-top: none;
+    }
+    ul.nav-tabs li a{
+        margin: 0;
+        padding: 8px 16px;
+        border-radius: 0;
+    }
+    ul.nav-tabs li.active a, ul.nav-tabs li.active a:hover{
+        color: #fff;
+        background: #0088cc;
+        border: 1px solid #0088cc;
+    }
+    ul.nav-tabs li:first-child a{
+        border-radius: 4px 4px 0 0;
+    }
+    ul.nav-tabs li:last-child a{
+        border-radius: 0 0 4px 4px;
+    }
+    ul.nav-tabs.affix{
+        top: 70px;
+    }
+	</style>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body data-spy="scroll" data-target="#mScrollspyCatalog">
+  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <!-- Brand and toggle get grouped for better mobile display -->
+	<div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#id-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="javascript:">BootstrapAMapPositionPicker</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div id="id-navbar-collapse-1" class="collapse navbar-collapse">
+
+		<ul class="nav navbar-nav navbar-right">
+		<li><a href="./demo.html"><span class="glyphicon glyphicon-align-justify"></span>&nbsp;示例</a></li>
+		<li><a href="https://git.oschina.net/kinegratii/Bootstrap-AMapPositionPicker" target="_blank"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;源码</a></li>
+		<li><a target="_blank" href="https://kinegratii.github.io/"><span class="glyphicon glyphicon-th"></span>&nbsp;博客</a></li>
+		</ul>
+
+    </div><!-- /.navbar-collapse -->
+ </div>
+</nav>
+
+     <div class="container">
+
+		<div class="row">
+		  <div class="col-md-3" id="mScrollspyCatalog">
+			<ul class="nav nav-tabs nav-stacked" data-spy="affix" data-offset-top="0">
+			  <li class="active"><a href="#n_useage">使用</a></li>
+			  <li><a href="#n_options">选项</a></li>
+			  <li><a href="#n_method">方法</a></li>
+			  <li><a href="#n_licence">协议</a></li>
+			</ul>
+		  </div>
+		  <div class="col-md-9">
+			<div class="jumbotron">
+			  <h2>高德地图位置选择器</h2>
+			  <p>Bootstrap高德地图位置选择表单组件</p>
+			  <p><a class="btn btn-primary" href="https://git.oschina.net/kinegratii/BootstrapAMapPositionPicker/repository/archive/master" role="button">下载</a> <small id="id_latest_version"></small></p>
+			</div>
+
+			<div class="page-header" id="n_useage">
+			  <h1>使用</h1>
+			</div>
+
+			<p>bootstrap.AMapPositionPicker是一款基于高德地图的位置选择插件，使用jQuery开发。她提供了以下特性：</p>
+			<ul>
+			  <li>初始位置数据</li>
+			  <li>字段显示格式、验证</li>
+			  <li>数据控件绑定</li>
+			  <li>支持高德地图地理逆编码</li>
+			  <li>自定义Modal外观样式</li>
+			</ul>
+
+			<h3>使用步骤</h3>
+			<p>1. 依次引入高德地图JS、jQuery、Bootstrap和bootstrap.AMapPositionPicker.min.js文件。</p>
+			<pre>
+&lt;script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=您申请的key值"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="http://cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="./dist/bootstrap.AMapPositionPicker.min.js"&gt;&lt;/script&gt;</pre>
+            <p>2. 在目标输入框初始化选项。</p>
+			<p>html代码</p>
+			  <pre>
+&lt;input type="text" id="id_address_input" name="address"/&gt;</pre>
+			<p>JS代码</p>
+			<pre>
+$("#id_address_input").AMapPositionPicker();</pre>
+            <p>3 运行效果</p>
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<form role="form">
+				  <div class="form-group">
+					<label for="id_address_input">地址</label>
+					<input type="text" class="form-control" id="id_address_input" name="address"/>
+				  </div>
+				  <button id="id_get_data" type="button" class="btn btn-default">获取当前数据</button>
+				  <p id="id_data_dispaly"> </p>
+				</form>
+			  </div>
+			</div>
+
+			<div class="page-header" id="n_options">
+			  <h1>选项</h1>
+			</div>
+
+			<h3>formatter</h3>
+			<p>String. 默认值：'{address}'. data属性：<code>data-formatter</code></p>
+			<p>目标输入框的位置格式字符串，可用的变量包括longitude、latitude、address。使用时用<code>{}</code>将变量包裹起来，并且二者之间不能含有空格。</p>
+			<h3>required</h3>
+			<p>boolean. 默认值：true. data属性：<code>data-required</code></p>
+			<p>是否为必填项。</p>
+			<h3>value</h3>
+			<p>Position,object. 默认值： null. data属性：<code>data-value-*</code></p>
+			<p>初始位置数据。例如可设置为<code>{longitude:119.300939, latitude:26.075302, address:'测试地址'}</code>。</p>
+			<h3>title</h3>
+			<p>String. 默认值：'请选择地址'. data属性：<code>data-title</code></p>
+			<p>Modal标题名称。</p>
+			<h3>height</h3>
+			<p>String. 默认值：'500px'. data属性：<code>data-height</code></p>
+			<p>地图控件的高度。宽度按照Modal自适应设置。</p>
+			<h3>fields</h3>
+			<p>Array. 默认值：[]</p>
+			<p>数据绑定选项，用于提交表单中多字段的情况。列表中每一项映射到一个<code>&lt;input/&gt;</code>控件（若不存在就自动创建）。</p>
+
+			  <pre>
+{
+  selector:'#id_lnglat', //选择器
+  name:'lnglat', //name属性值
+  formatter:'{longitude},{latitude}' //value的格式字符串
+}</pre>
+
+			<div class="page-header" id="n_method">
+			  <h1>方法</h1>
+			</div>
+              <p><code>$(element).AMapPositionPicker(methodString, ...args)</code></p>
+              <p>所有方法按照上述方式调用。</p>
+              <h3>position</h3>
+			<p>返回类型：Position。返回当前选择的位置。</p>
+
+			  <h3>getInitialPosition</h3>
+			  <p>返回类型：Position。返回初始位置。</p>
+
+			<div class="page-header" id="n_licence">
+			  <h1>协议</h1>
+			</div>
+
+
+			<p>本项目采用<a href="https://opensource.org/licenses/mit-license.php" target="_blank">MIT协议</a>开源。</p>
+		  </div>
+		</div>
+	 </div>
+
+	 <footer class="footer">
+      <div class="container">
+	    <hr/>
+		<div class="row">
+		<div class="col-md-4 col-md-offset-1">
+		<p>&copy; kinegratii 2016-2017<br/>
+		<a href="https://git.oschina.net/kinegratii/Bootstrap-AMapPositionPicker" target="_blank">源码</a>
+		&nbsp;|&nbsp;<a  target="_blank" href="https://kinegratii.github.io/">博客</a>
+		&nbsp;|&nbsp;<a  target="_blank" href="mailto:kinegratii@yeah.net">邮箱</a></p>
+
+		</div>
+		<div class="col-md-4 col-md-offset-2">
+		<p>本页面由<a href="https://git.oschina.net/" target="_blank">码云Pages</a>强力驱动。<br/>
+		CDN服务由<a href="http://www.bootcdn.cn/" target="_blank">BootCDN</a>提供。</p>
+		</div>
+		</div>
+
+      </div>
+    </footer>
+
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script type="text/javascript"
+            src="http://webapi.amap.com/maps?v=1.3&key=ed1fafa0307bb4991da41f54d8a88b46"></script>
+	<script src="./dist/bootstrap.AMapPositionPicker.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+	    $("#id_latest_version").html('最新版本 ' + $.fn.AMapPositionPicker.version);
+	    var p1 = $("#id_address_input").AMapPositionPicker();
+		$("#id_get_data").on('click', function(){
+		    $("#id_data_dispaly").html(JSON.stringify(p1.AMapPositionPicker('position')));
+		});
+	});
+	</script>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>示例 | 高德地图位置选择插件</title>
+
+    <!-- Bootstrap -->
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style rel="stylesheet">
+        body {
+            font-family: Microsoft YaHei;
+            padding-top: 70px;
+        }
+
+    </style>
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#id-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="javascript:">BootstrapAMapPositionPicker</a>
+        </div>
+        <div id="id-navbar-collapse-1" class="collapse navbar-collapse">
+
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="./index.html"><span class="glyphicon glyphicon-file"></span>&nbsp;文档</a>
+                </li>
+                <li><a href="https://git.oschina.net/kinegratii/Bootstrap-AMapPositionPicker" target="_blank"><span
+                        class="glyphicon glyphicon-list-alt"></span>&nbsp;源码</a></li>
+                <li><a target="_blank" href="https://kinegratii.github.io/"><span class="glyphicon glyphicon-th"></span>&nbsp;博客</a>
+                </li>
+            </ul>
+
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="page-header" id="n_input_component">
+        <h1>示例</h1>
+    </div>
+
+    <h3>输入组</h3>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <form role="form">
+                        <label for="id_address_input">地址</label>
+
+                        <div class="input-group" id="id_address_input">
+                            <input type="text" class="form-control">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-map-marker"></span></span>
+                        </div>
+                        <button id="id_get_data" type="button" class="btn btn-default">获取当前位置数据</button>
+                        <p id="id_data_display"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p>html代码</p>
+			<pre>
+&lt;form role="form"&gt;
+    &lt;label for="id_address_input"&gt;地址&lt;/label&gt;
+    &lt;div class="input-group" id="id_address_input"&gt;
+        &lt;input type="text" class="form-control"&gt;
+        &lt;span class="input-group-addon"&gt;&lt;span class="glyphicon glyphicon-map-marker"&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;button id="id_get_data" type="button" class="btn btn-default"&gt;获取当前位置数据&lt;/button&gt;
+    &lt;p id="id_data_display"&gt;&lt;/p&gt;
+&lt;/form&gt;</pre>
+            <p>js代码</p>
+<pre>
+var p = $("#id_address_input").AMapPositionPicker();
+$("#id_get_data").on('click', function () {
+    $("#id_data_display").html(JSON.stringify(p.AMapPositionPicker('position')));
+});
+</pre>
+        </div>
+    </div>
+    <h3>提供初始位置</h3>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <form role="form">
+                        <label for="id_address_input1">地址</label>
+
+                        <div class="form-group">
+                            <input id="id_address_input1" type="text" class="form-control"
+                                   data-provide="AMapPositionPicker"
+                                   data-value-longitude="119.300939" data-value-latitude="26.075302"
+                                   data-value-address="测试"/>
+                        </div>
+                        <button id="id_get_data1" type="button" class="btn btn-default">获取当前位置数据</button>
+                        <p id="id_data_display1"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p>html代码</p>
+			<pre>
+&lt;form role="form"&gt;
+    &lt;label for="id_address_input1"&gt;地址&lt;/label&gt;
+    &lt;div class="form-group"&gt;
+        &lt;input id="id_address_input1" type="text" class="form-control" data-provide="AMapPositionPicker"
+               data-value-longitude="119.300939" data-value-latitude="26.075302"
+               data-value-address="测试"/&gt;
+    &lt;/div&gt;
+    &lt;button id="id_get_data1" type="button" class="btn btn-default"&gt;获取当前位置数据&lt;/button&gt;
+    &lt;p id="id_data_display1"&gt;&lt;/p&gt;
+&lt;/form&gt;</pre>
+            <p>js代码</p>
+<pre>
+$("#id_get_data1").on('click', function () {
+    $("#id_data_display1").html(JSON.stringify($("#id_address_input1").AMapPositionPicker('position')));
+});
+</pre>
+        </div>
+    </div>
+    <h3>表单字段绑定</h3>
+
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <form role="form" id="id_fields_form">
+                        <label for="id_address_input2">地址</label>
+
+                        <div class="form-group">
+                            <input id="id_address_input2" type="text" name="address" class="form-control"/>
+                        </div>
+                        <button id="id_get_data2" type="button" class="btn btn-default">获取表单数据</button>
+                        <p id="id_data_display2"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p>html代码</p>
+			<pre>
+&lt;form role="form" id="id_fields_form"&gt;
+    &lt;label for="id_address_input2"&gt;地址&lt;/label&gt;
+    &lt;div class="form-group"&gt;
+        &lt;input id="id_address_input2" type="text" name="address" class="form-control"/&gt;
+    &lt;/div&gt;
+    &lt;button id="id_get_data2" type="button" class="btn btn-default"&gt;获取表单数据&lt;/button&gt;
+    &lt;p id="id_data_display2"&gt;&lt;/p&gt;
+&lt;/form&gt;</pre>
+            <p>js代码</p>
+<pre>
+var p2 = $("#id_address_input2").AMapPositionPicker({
+    fields: [
+        {
+            selector: '#id_lnglat',
+            name: 'lnglat',
+            formatter: '{longitude},{latitude}'
+        }
+    ]
+});
+$("#id_get_data2").on('click', function () {
+    alert($("#id_fields_form").serialize());
+});
+</pre>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <hr/>
+        <div class="row">
+            <div class="col-md-4 col-md-offset-1">
+                <p>&copy; kinegratii 2016-2017<br/>
+                    <a href="https://git.oschina.net/kinegratii/Bootstrap-AMapPositionPicker" target="_blank">源码</a>
+                    &nbsp;|&nbsp;<a target="_blank" href="https://kinegratii.github.io/">博客</a>
+                    &nbsp;|&nbsp;<a target="_blank" href="mailto:kinegratii@yeah.net">邮箱</a></p>
+
+            </div>
+            <div class="col-md-4 col-md-offset-2">
+                <p>本页面由<a href="https://git.oschina.net/" target="_blank">码云Pages</a>强力驱动。<br/>
+                    CDN服务由<a href="http://www.bootcdn.cn/" target="_blank">BootCDN</a>提供。</p>
+            </div>
+        </div>
+
+    </div>
+</footer>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript"
+        src="http://webapi.amap.com/maps?v=1.3&key=ed1fafa0307bb4991da41f54d8a88b46"></script>
+<script src="./dist/bootstrap.AMapPositionPicker.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#id_latest_version").html('最新版本 ' + $.fn.AMapPositionPicker.version);
+        var p = $("#id_address_input").AMapPositionPicker();
+        $("#id_get_data").on('click', function () {
+            $("#id_data_display").html(JSON.stringify(p.AMapPositionPicker('position')));
+        });
+
+        $("#id_get_data1").on('click', function () {
+            $("#id_data_display1").html(JSON.stringify($("#id_address_input1").AMapPositionPicker('position')));
+        });
+
+
+        var p2 = $("#id_address_input2").AMapPositionPicker({
+            fields: [
+                {
+                    selector: '#id_lnglat',
+                    name: 'lnglat',
+                    formatter: '{longitude},{latitude}'
+                }
+            ]
+        });
+        $("#id_get_data2").on('click', function () {
+            alert($("#id_fields_form").serialize());
+        });
+
+
+    });
+</script>
+</body>
+</html>
