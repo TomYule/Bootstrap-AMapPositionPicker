@@ -2,7 +2,7 @@
   "name": "amap-position-picker",
   "version": "0.5.0",
   "description": "A position picker for amap.",
-  "main": "src/bootstrap.AMapPositionPicker.js",
+  "main": "src/js/bootstrap.AMapPositionPicker.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
