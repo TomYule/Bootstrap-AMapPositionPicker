@@ -6,5 +6,6 @@ __pycache__/
 *.so
 .idea
 node_modules
+dev.html
 
 

@@ -35,7 +35,7 @@
         };
     }
 
-    function hFormat(formatter, data) {
+    function wrapFormat(formatter, data) {
         if (typeof formatter == 'function') {
             return formatter(data);
         } else if (typeof formatter == 'string') {
@@ -99,15 +99,17 @@
                 this.$instance = $(inputHtml);
                 this.created = false;
             }
-            this.formatter = options.formatter;
+            this.formatter = function (position) {
+                return wrapFormat(options.formatter, position);
+            };
             // 赋值
             if (Position.validate(position)) {
-                this.$instance.val(this.format(position));
+                this.$instance.val(this.formatter(position));
             }
         }
 
         InputEl.prototype.render = function (data) {
-            var s = hFormat(this.formatter, data);
+            var s = this.formatter(data);
             this.$instance.val(s);
         };
         InputEl.id_index = -1;
@@ -320,7 +322,7 @@
 
         picker._onPickedCallback = function (mPosition) {
             picker.position(mPosition);
-            $inputEl.val(options.formatter.format(mPosition));
+            $inputEl.val(wrapFormat(options.formatter, mPosition));
             for (var i in picker.inputElList) {
                 picker.inputElList[i].render(mPosition);
             }
