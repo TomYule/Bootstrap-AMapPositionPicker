@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.5.0
+ * BootstrapAMapPositionPicker v0.6.0
  * @author: Kinegratii
  */
 (function (factory) {
@@ -35,7 +35,7 @@
         };
     }
 
-    function hFormat(formatter, data) {
+    function wrapFormat(formatter, data) {
         if (typeof formatter == 'function') {
             return formatter(data);
         } else if (typeof formatter == 'string') {
@@ -99,15 +99,17 @@
                 this.$instance = $(inputHtml);
                 this.created = false;
             }
-            this.formatter = options.formatter;
+            this.formatter = function (position) {
+                return wrapFormat(options.formatter, position);
+            };
             // 赋值
             if (Position.validate(position)) {
-                this.$instance.val(this.format(position));
+                this.$instance.val(this.formatter(position));
             }
         }
 
         InputEl.prototype.render = function (data) {
-            var s = hFormat(this.formatter, data);
+            var s = this.formatter(data);
             this.$instance.val(s);
         };
         InputEl.id_index = -1;
@@ -127,14 +129,14 @@
     // Modal 封装
     var pickerModal = (function () {
         var toolsHtml = '<div style="position: absolute;z-index: 2;top:5px;right: 5px;"><div class="btn-group">'
-            + '<button id="idAMapPositionPickerLocation" type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;定位</button>'
+            + '<button id="idAMapPositionPickerLocation" type="button" class="btn btn-default"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;定位</button>'
             + '<button id="idAMapPositionPickerClear" type="button" class="btn btn-default"><span class="glyphicon glyphicon-remove"></span>&nbsp;清除</button>'
             + '<button id="idAMapPositionPickerReset" type="button" class="btn btn-default"><span class="glyphicon glyphicon-repeat"></span>&nbsp;重置</button> </div>'
             + '</div>';
         var modalHtml = '<div class="modal fade" id="idAMapPositionPickerModal">'
             + '<div class="modal-dialog">'
             + '<div class="modal-content">'
-            + '<div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title">选择详细地址</h4><small id="idAMapPositionPickerAlert" style="color: red">必须选择一个位置</small></div>'
+            + '<div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title">请选择地址</h4><small id="idAMapPositionPickerAlert" style="color: red">必须选择一个位置</small></div>'
             + '<div class="modal-body">'
             + '<div id="idAMapPositionPickerMap" style="height: 500px;" class="form-control">'
             + toolsHtml
@@ -148,10 +150,8 @@
             + '</div>' // End of Modal-dialog
             + '</div>';//End of Modal
         var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn;
-        var mapObj = null, marker = null;
-
+        var mapObj = null, marker = null, geolocation;
         var context = null, contextOptions = null;
-
         //init modal
         var cachePosition = Position.empty();
 
@@ -175,6 +175,17 @@
                     cachePosition.latitude = e.lnglat.lat;
                     showPositionOnMap(undefined, e.lnglat);
                 });
+                mapObj.plugin('AMap.Geolocation', function () {
+                    geolocation = new AMap.Geolocation({
+                        enableHighAccuracy: true,
+                        timeout: 3000,
+                        maximumAge: 0,
+                        convert: true,
+                        panToLocation: true,
+                        zoomToAccuracy: true,
+                        markerOptions:{}
+                    });
+                });
                 // 内部事件响应
                 $map = $("#idAMapPositionPickerMap");
                 $pickBtn = $("#idAMapPositionPickerSelect");
@@ -187,6 +198,7 @@
                 $pickBtn.on('click', pickPosition);
                 $resetBtn.on('click', resetInitialPosition);
                 $clearBtn.on('click', clearPosition);
+                $locationBtn.on('click', location);
             }
         }
 
@@ -198,7 +210,17 @@
         }
 
         function location() {
-
+            $alert.hide();
+            geolocation.getCurrentPosition(function(status, result){
+                if(status == 'complete'){
+                    cachePosition.longitude = result.position.lng;
+                    cachePosition.latitude = result.position.lat;
+                    cachePosition.address = result.formattedAddress;
+                    showPositionOnMap(cachePosition);
+                }else{
+                    $alert.html(result.message).show();
+                }
+            });
         }
 
         function clearPosition() {
@@ -222,13 +244,12 @@
             var address = $addressInput.val();
             cachePosition.address = address;
             if (contextOptions.required && !cachePosition.isValid()) {
-                $alert.show();
+                $alert.html('请选择地址').show();
             } else {
                 $alert.hide();
-                context._onPickedCallback(cachePosition.copy({address: address})); //返回一个新的数据实例
                 $modal.modal('hide');
+                context._onPickedCallback(cachePosition.copy({address: address})); //返回一个新的数据实例
             }
-
         }
 
         function showModal() {
@@ -246,7 +267,6 @@
             }
             $modal.modal('show');
         }
-
 
         function showPositionOnMap(position, lnglat) {
             var address = "";
@@ -320,11 +340,12 @@
 
         picker._onPickedCallback = function (mPosition) {
             picker.position(mPosition);
-            $inputEl.val(options.formatter.format(mPosition));
+            $inputEl.val(wrapFormat(options.formatter, mPosition));
             for (var i in picker.inputElList) {
                 picker.inputElList[i].render(mPosition);
             }
             options.onPicked(mPosition);
+            //element.trigger('AMPP.Picked', [mPosition]);
         };
 
         // 公有 API
@@ -424,7 +445,7 @@
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.5.0';
+    $.fn.AMapPositionPicker.version = 'v0.6.0';
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
     });

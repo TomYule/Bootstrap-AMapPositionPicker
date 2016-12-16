@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.5.0
+ * BootstrapAMapPositionPicker v0.6.0
  * @author: Kinegratii
  */
 (function (factory) {
@@ -445,7 +445,7 @@
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.5.0';
+    $.fn.AMapPositionPicker.version = 'v0.6.0';
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
     });

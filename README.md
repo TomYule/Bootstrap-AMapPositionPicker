@@ -2,12 +2,14 @@
 
 ## 概述
 
-bootstrap.AMapPositionPicker是一款基于高德地图的位置选择插件，使用jQuery开发。提供了以下特性：
+bootstrap.AMapPositionPicker是一款基于高德地图的位置选择插件，使用jQuery开发。主要特性有：
 
+- data-*属性配置
 - 初始位置数据
+- 浏览器定位
 - 字段显示格式、验证
 - 数据控件绑定
-- 支持高德地图地理逆编码
+- 支持地理逆编码
 - 自定义Modal外观样式
 
 ## 使用方法
@@ -36,13 +38,18 @@ JS代码
 $("#id_address_input").AMapPositionPicker();
 ```
 
-## 文档
-
-[文档&示例](http://kinegratii.oschina.io/bootstrap-amappositionpicker/index.html)
-
 ## 构建
 
 项目使用gulp工具构建。
+
+## 测试
+
+(待完善)
+
+## 文档
+
+- [OSC软件主页](https://www.oschina.net/p/amappositionpicker)
+- [文档&示例](http://kinegratii.oschina.io/bootstrap-amappositionpicker/index.html)
 
 ## 协议
 
