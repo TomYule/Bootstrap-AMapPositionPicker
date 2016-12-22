@@ -77,10 +77,29 @@
                 return false;
             }
         };
+        Position.validateLngLat = function (lnglatStr) {
+            var result = /^([+-]?(0?\d{1,2}(\.\d{1,6})?|1[0-7]?\d{1}(\.\d{1,6})?|180\.0{1,6}))[-;,]([-+]?([0-8]?\d{1}(\.\d{1,6})?|90(\.0{1,6})?))$/.exec(lnglatStr);
+            if (result) {
+                return {longitude: parseFloat(result[1]), latitude: parseFloat(result[5])};
+            } else {
+                return null;
+            }
+        };
+        Position.LNGLAT_FORMATTER = ['{longitude}-{latitude}', '{longitude};{latitude}', '{longitude},{latitude}'];
         return Position;
     }());
 
     var InputEl = (function () {
+        var idIndex = -1;
+
+        function generateSelectorId(selector) {
+            if (selector.startsWith('#')) {
+                return selector.substring(1);
+            } else {
+                idIndex += 1;
+                return 'id_bapp_i' + idIndex;
+            }
+        }
 
         function InputEl(options, position) {
             this.name = options.name;
@@ -93,7 +112,7 @@
                 this.created = true;
             } else {
                 var inputHtml = '<input type="hidden" id="{id}" name="{name}"/>'.format({
-                    id: InputEl.generateSelectorId(options.selector),
+                    id: generateSelectorId(options.selector),
                     name: options.name
                 });
                 this.$instance = $(inputHtml);
@@ -111,15 +130,6 @@
         InputEl.prototype.render = function (data) {
             var s = this.formatter(data);
             this.$instance.val(s);
-        };
-        InputEl.id_index = -1;
-        InputEl.generateSelectorId = function (selector) {
-            if (selector.startsWith('#')) {
-                return selector.substring(1);
-            } else {
-                InputEl.id_index += 1;
-                return 'id_bapp_i' + InputEl.id_index;
-            }
         };
 
         return InputEl;
@@ -183,7 +193,7 @@
                         convert: true,
                         panToLocation: true,
                         zoomToAccuracy: true,
-                        markerOptions:{}
+                        markerOptions: {}
                     });
                 });
                 // 内部事件响应
@@ -211,13 +221,13 @@
 
         function location() {
             $alert.hide();
-            geolocation.getCurrentPosition(function(status, result){
-                if(status == 'complete'){
+            geolocation.getCurrentPosition(function (status, result) {
+                if (status == 'complete') {
                     cachePosition.longitude = result.position.lng;
                     cachePosition.latitude = result.position.lat;
                     cachePosition.address = result.formattedAddress;
                     showPositionOnMap(cachePosition);
-                }else{
+                } else {
                     $alert.html(result.message).show();
                 }
             });
@@ -336,8 +346,6 @@
         };
         var $inputEl = null;
 
-        var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address);
-
         picker._onPickedCallback = function (mPosition) {
             picker.position(mPosition);
             $inputEl.val(wrapFormat(options.formatter, mPosition));
@@ -362,8 +370,6 @@
             }
         };
 
-        //初始化
-        element.data('position', initialPosition.copy());
         //
         if (element.is('input')) {
             $inputEl = element;
@@ -371,6 +377,17 @@
             $inputEl = element.children('input');
         }
         $inputEl.prop("readonly", true);
+        //初始位置
+        if (Position.LNGLAT_FORMATTER.indexOf(options.formatter)) {
+            var result = Position.validateLngLat($inputEl.val());
+            if (result) {
+                options.value.longitude = parseFloat(result.longitude);
+                options.value.latitude = parseFloat(result.latitude);
+            }
+        }
+        var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address);
+        element.data('position', initialPosition.copy());
+        //事件注册
         element.on('click', function () {
             //show modal/
             pickerModal.startContext(picker, options).showModal();
