@@ -5,7 +5,7 @@
 (function (factory) {
     'use strict';
     if (typeof define === 'function' && define.amd) {
-        define(['jquery'], factory);
+        define(['jquery', 'AMap'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory(require('jquery'));
     } else {
@@ -89,7 +89,7 @@
         return Position;
     }());
 
-    var InputEl = (function () {
+    var Field = (function () {
         var idIndex = -1;
 
         function generateSelectorId(selector) {
@@ -101,21 +101,21 @@
             }
         }
 
-        function InputEl(options, position) {
+        function Field(options, position) {
             this.name = options.name;
             if (options.selector instanceof jQuery) {
-                this.$instance = options.selector;
+                this.$widget = options.selector;
                 this.created = true;
             }
             else if ($(options.selector).length > 0) {
-                this.$instance = $(options.selector);
+                this.$widget = $(options.selector);
                 this.created = true;
             } else {
                 var inputHtml = '<input type="hidden" id="{id}" name="{name}"/>'.format({
                     id: generateSelectorId(options.selector),
                     name: options.name
                 });
-                this.$instance = $(inputHtml);
+                this.$widget = $(inputHtml);
                 this.created = false;
             }
             this.formatter = function (position) {
@@ -123,52 +123,70 @@
             };
             // 赋值
             if (Position.validate(position)) {
-                this.$instance.val(this.formatter(position));
+                this.$widget.val(this.formatter(position));
             }
         }
 
-        InputEl.prototype.render = function (data) {
+        Field.prototype.render = function (data) {
             var s = this.formatter(data);
-            this.$instance.val(s);
+            this.$widget.val(s);
         };
 
-        return InputEl;
+        return Field;
 
     }());
 
-    // Modal 封装
-    var pickerModal = (function () {
-        var toolsHtml = '<div style="position: absolute;z-index: 2;top:5px;right: 5px;"><div class="btn-group">'
-            + '<button id="idAMapPositionPickerLocation" type="button" class="btn btn-default"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;定位</button>'
-            + '<button id="idAMapPositionPickerClear" type="button" class="btn btn-default"><span class="glyphicon glyphicon-remove"></span>&nbsp;清除</button>'
-            + '<button id="idAMapPositionPickerReset" type="button" class="btn btn-default"><span class="glyphicon glyphicon-repeat"></span>&nbsp;重置</button> </div>'
+    function buildModalHtml() {
+        var toolsHtml = '<div class="btn-group">'
+            + '<button id="idAMapPositionPickerSearch" type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-target="#idAMapPositionPickerSearchPanel"><span class="glyphicon glyphicon-search"></span>&nbsp;搜索</button>'
+            + '<button id="idAMapPositionPickerLocation" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;定位</button>'
+            + '<button id="idAMapPositionPickerReset" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-repeat"></span>&nbsp;重置</button>'
+            + '<button id="idAMapPositionPickerClear" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span>&nbsp;清除</button>'
             + '</div>';
+        var searchPanelHtml = '<div id="idAMapPositionPickerSearchPanel" class="collapse"><input class="form-control input-sm" id="idAMapPositionPickerSearchInput"/><ul id="idAMapPositionPickerSearchResult" class="list-group"></ul></div>';
+        var mapPanelHtml = '<div style="position: absolute;z-index: 2;top:5px;right: 5px;">' + toolsHtml + searchPanelHtml + '</div>';
         var modalHtml = '<div class="modal fade" id="idAMapPositionPickerModal">'
             + '<div class="modal-dialog">'
             + '<div class="modal-content">'
             + '<div class="modal-header"><button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title">请选择地址</h4><small id="idAMapPositionPickerAlert" style="color: red">必须选择一个位置</small></div>'
             + '<div class="modal-body">'
             + '<div id="idAMapPositionPickerMap" style="height: 500px;" class="form-control">'
-            + toolsHtml
+            + mapPanelHtml
             + '</div>' //End of Map container
-            + '<input class="form-control" style="margin-top:10px;" id="idAMapPositionPickerAddress"/>'
+            + '<input class="form-control input-sm" style="margin-top:5px;" id="idAMapPositionPickerAddress"/>'
             + '</div>' //End of modal-Body
             + '<div class="modal-footer">'
-            + '<button id="idAMapPositionPickerSelect" type="button" class="btn btn-primary">确定</button><button type="button" class="btn btn-default" data-dismiss="modal">取消</button>'
+            + '<button id="idAMapPositionPickerSelect" type="button" class="btn btn-primary btn-sm">确定</button><button type="button" class="btn btn-default btn-sm" data-dismiss="modal">取消</button>'
             + '</div>' //End of Modal-footer
             + '</div>' //End of Modal-content
             + '</div>' // End of Modal-dialog
             + '</div>';//End of Modal
+        return modalHtml;
+    }
+
+
+    var pickerModal = (function () {
         var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn;
-        var mapObj = null, marker = null, geolocation;
+        var $searchPanel, $searchInput;
         var context = null, contextOptions = null;
+        var mapObj = null, geolocation;
+        var markerList = [], marker = null; //标记点列表
+        var pickedMarker;
+
         //init modal
         var cachePosition = Position.empty();
+
+        var mapClickClickHandler = function (e) {
+            $alert.hide();
+            cachePosition.longitude = e.lnglat.lng;
+            cachePosition.latitude = e.lnglat.lat;
+            showPositionOnMap(undefined, e.lnglat);
+        };
 
 
         function initModal() {
             if ($modal == null) {
-                $modal = $(modalHtml);
+                $modal = $(buildModalHtml());
                 $(document.body).append($modal);
                 mapObj = new AMap.Map("idAMapPositionPickerMap", {
                     zoom: 15
@@ -179,12 +197,7 @@
                         mapObj.addControl(new AMap.Scale());
                         mapObj.addControl(new AMap.OverView({isOpen: true}));
                     });
-                AMap.event.addListener(mapObj, 'click', function (e) {
-                    $alert.hide();
-                    cachePosition.longitude = e.lnglat.lng;
-                    cachePosition.latitude = e.lnglat.lat;
-                    showPositionOnMap(undefined, e.lnglat);
-                });
+                mapObj.on('click', mapClickClickHandler);
                 mapObj.plugin('AMap.Geolocation', function () {
                     geolocation = new AMap.Geolocation({
                         enableHighAccuracy: true,
@@ -204,11 +217,18 @@
                 $clearBtn = $("#idAMapPositionPickerClear");
                 $addressInput = $("#idAMapPositionPickerAddress");
                 $alert = $("#idAMapPositionPickerAlert");
+                $searchPanel = $("#idAMapPositionPickerSearchPanel");
+                $searchInput = $("#idAMapPositionPickerSearchInput");
 
                 $pickBtn.on('click', pickPosition);
                 $resetBtn.on('click', resetInitialPosition);
                 $clearBtn.on('click', clearPosition);
                 $locationBtn.on('click', location);
+                $searchPanel.on('show.bs.collapse', function () {
+                    startSearch();
+                }).on('hide.bs.collapse', function () {
+                    endSearch();
+                });
             }
         }
 
@@ -262,6 +282,133 @@
             }
         }
 
+        function startSearch() {
+            console.log('End search');
+            mapObj.off('click', mapClickClickHandler);
+            $resetBtn.prop('disabled', true);
+            $clearBtn.prop('disabled', true);
+            $locationBtn.prop('disabled', true);
+            $searchInput.on('keydown', function (e) {
+                if (e.which == '13' && $searchInput.val().length > 0) { //Enter
+                    AMap.service('AMap.PlaceSearch', function () {
+                        var b = mapObj.getBounds();
+                        var placeSearch = new AMap.PlaceSearch({
+                            pageSize: 6,
+                            pageIndex: 1
+                        });
+                        // Search in the given bound
+                        placeSearch.searchInBounds($searchInput.val(), b, function (status, result) {
+                            $searchPanel.children('li').remove();
+                            for (var i in markerList) {
+                                markerList[i].setMap(null);
+                            }
+                            markerList = [];
+                            if (status == 'complete') {
+                                for (var i in result.poiList.pois) {
+                                    var poi = result.poiList.pois[i];
+                                    var li = $('<li class="list-group-item"><small>' + poi.name + '</small></li>');
+                                    $searchPanel.append(li);
+                                    var mMarker = createMarker(new Position(poi.location.lng, poi.location.lat, ''));
+                                    // TODO 增加响应
+                                    //AMap.event.addListener(mMarker, 'click', function (e) {
+                                    //    console.log('Click mark in the search');
+                                    //    cachePosition.longitude = e.lnglat.lng;
+                                    //    cachePosition.latitude = e.lnglat.lat;
+                                    //    showPositionOnMap(undefined, e.lnglat, false);
+                                    //});
+                                    markerList.push(mMarker);
+                                }
+                                mapObj.panTo(markerList[0].getPosition());
+                            } else {
+                                $searchPanel.append('<li><small>抱歉，暂无找到符合条件的结果。</small></li>');
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        function endSearch() {
+            console.log('End search');
+            mapObj.on('click', mapClickClickHandler);
+            $resetBtn.prop('disabled', false);
+            $clearBtn.prop('disabled', false);
+            $locationBtn.prop('disabled', false);
+            $searchInput.val('').off('keydown');
+            for (var i in markerList) {
+                markerList[i].setMap(null);
+            }
+            markerList = [];
+            $searchPanel.children('li').remove();
+        }
+
+        //1
+        function createMarker(position) {
+            var _marker = new AMap.Marker({
+                map: mapObj,
+                position: new AMap.LngLat(position.longitude, position.latitude),
+                topWhenClick: true,
+                offset: new AMap.Pixel(-5, -30),
+                extData: position
+            });
+            _marker.on('click', function (e) {
+                console.log('Click mark');
+                queryAddress(e.target);
+                showThisMarker(e.target);
+            });
+            return _marker;
+        }
+
+        //2
+        function queryAddress(marker) {
+            var position = marker.getExtData();
+            if (!position.address) {
+                var geocoder;
+                mapObj.plugin(["AMap.Geocoder"], function () {
+                    geocoder = new AMap.Geocoder({
+                        radius: 1000,
+                        extensions: "base"
+                    });
+                    AMap.event.addListener(geocoder, "complete", function (GeocoderResult) {
+                        if (GeocoderResult["info"] == "OK") {
+                            position.address = GeocoderResult.regeocode.formattedAddress;
+                            marker.setExtData(position);
+                        }
+                    });
+                    geocoder.getAddress(marker.getPosition());
+                });
+            }
+        }
+
+        //3
+        function showThisMarker(cMarker) {
+            console.log('showThisMarker');
+            marker = cMarker;
+            console.log(cMarker);
+            cachePosition.longitude = cMarker.getPosition().lng;
+            cachePosition.latitude = cMarker.getPosition().lat;
+            $addressInput.val(cMarker.getExtData().address);
+            mapObj.panTo(cMarker.getPosition());
+        }
+
+        function createMapMarker(lnglat, address, name) {
+            //TODO 废弃
+            var mMarker = new AMap.Marker({
+                map: mapObj,
+                position: lnglat,
+                topWhenClick: true,
+                offset: new AMap.Pixel(-5, -30)
+            });
+            var _onClick = function (e) {
+                $alert.hide();
+                cachePosition.longitude = e.lnglat.lng;
+                cachePosition.latitude = e.lnglat.lat;
+                showPositionOnMap(undefined, e.lnglat, true);
+            };
+            AMap.event.addListener(mMarker, 'click', _onClick);
+            return mMarker;
+        }
+
         function showModal() {
             initModal();
             initialModalUI(contextOptions);
@@ -274,11 +421,18 @@
                     marker.setMap(null);
                 }
                 $addressInput.val('');
+                if (contextOptions.center.longitude && contextOptions.center.latitude) {
+                    mapObj.setCenter(new AMap.LngLat(contextOptions.center.longitude, contextOptions.center.latitude));
+                }
             }
             $modal.modal('show');
         }
 
-        function showPositionOnMap(position, lnglat) {
+        function showPositionOnMap(position, lnglat, hasMarker) {
+            // TODO 废弃
+            if (hasMarker == undefined) {
+                hasMarker = false;
+            }
             var address = "";
             if (lnglat == undefined) {
                 if (Position.validate(position)) {
@@ -313,12 +467,14 @@
                 if (marker != null) {
                     marker.setMap(null);
                 }
-                marker = new AMap.Marker({
-                    map: mapObj,
-                    position: lnglat,
-                    topWhenClick: true,
-                    offset: new AMap.Pixel(-5, -30)
-                });
+                if (!hasMarker) {
+                    marker = new AMap.Marker({
+                        map: mapObj,
+                        position: lnglat,
+                        topWhenClick: true,
+                        offset: new AMap.Pixel(-5, -30)
+                    });
+                }
                 $addressInput.val(address);
                 mapObj.setCenter(lnglat);
             }
@@ -353,7 +509,6 @@
                 picker.inputElList[i].render(mPosition);
             }
             options.onPicked(mPosition);
-            //element.trigger('AMPP.Picked', [mPosition]);
         };
 
         // 公有 API
@@ -371,7 +526,7 @@
         };
 
         //
-        if (element.is('input')) {
+        if (element.is('input') || element.is('textarea')) {
             $inputEl = element;
         } else {
             $inputEl = element.children('input');
@@ -395,9 +550,9 @@
         // 处理fields
         var fields = options.fields || [];
         for (var i in fields) {
-            var iEl = new InputEl(fields[i] || {});
+            var iEl = new Field(fields[i] || {});
             if (!iEl.created) {
-                element.after(iEl.$instance);
+                $inputEl.after(iEl.$widget);
             }
             picker.inputElList.push(iEl);
         }
@@ -423,6 +578,10 @@
                             longitude: $this.data('valueLongitude'),
                             latitude: $this.data('valueLatitude'),
                             address: $this.data('valueAddress')
+                        },
+                        center: {
+                            longitude: $this.data('centerLongitude'),
+                            latitude: $this.data('centerLatitude')
                         }
                     }; // 处理data-*属性
                     options = $.extend(true, {}, $.fn.AMapPositionPicker.defaults, dataOptions, options);
@@ -458,7 +617,7 @@
             address: null
         },
         required: true,
-        title: '请输入地址',
+        title: '请选择地址',
         height: '500px',
         fields: []
     };
