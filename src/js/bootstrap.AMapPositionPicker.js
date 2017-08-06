@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.6.0
+ * BootstrapAMapPositionPicker v0.7.0
  * @author: Kinegratii
  */
 (function (factory) {
@@ -18,7 +18,7 @@
         factory(jQuery, AMap);
     }
 }(function ($, AMap) {
-    //全局工具函数
+    // Global tool functions
     String.prototype.format = function (data) {
         var result = this;
         for (var key in data) {
@@ -45,7 +45,7 @@
         }
     }
 
-    // 数据结构定义
+    // Data Structure Start
     var Position = (function () {
         function Position(longitude, latitude, address) {
             this.longitude = longitude;
@@ -136,12 +136,14 @@
 
     }());
 
+    // Data Structure End
+
     function buildModalHtml() {
         var toolsHtml = '<div class="btn-group">'
-            + '<button id="idAMapPositionPickerSearch" type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-target="#idAMapPositionPickerSearchPanel"><span class="glyphicon glyphicon-search"></span>&nbsp;搜索</button>'
             + '<button id="idAMapPositionPickerLocation" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;定位</button>'
             + '<button id="idAMapPositionPickerReset" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-repeat"></span>&nbsp;重置</button>'
             + '<button id="idAMapPositionPickerClear" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span>&nbsp;清除</button>'
+            + '<button id="idAMapPositionPickerSearch" type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-target="#idAMapPositionPickerSearchPanel"><span class="glyphicon glyphicon-search"></span>&nbsp;搜索</button>'
             + '</div>';
         var searchPanelHtml = '<div id="idAMapPositionPickerSearchPanel" class="collapse"><input class="form-control input-sm" id="idAMapPositionPickerSearchInput"/><ul id="idAMapPositionPickerSearchResult" class="list-group"></ul></div>';
         var mapPanelHtml = '<div style="position: absolute;z-index: 2;top:5px;right: 5px;">' + toolsHtml + searchPanelHtml + '</div>';
@@ -166,11 +168,12 @@
 
 
     var pickerModal = (function () {
+        // Common Modal Controller for all elements
         var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn;
         var $searchPanel, $searchInput;
         var context = null, contextOptions = null;
         var mapObj = null, geolocation;
-        var markerList = [], marker = null; //标记点列表
+        var markerList = [], marker = null;
         var pickedMarker;
 
         //init modal
@@ -209,7 +212,7 @@
                         markerOptions: {}
                     });
                 });
-                // 内部事件响应
+                // DOM Selectors and events
                 $map = $("#idAMapPositionPickerMap");
                 $pickBtn = $("#idAMapPositionPickerSelect");
                 $locationBtn = $("#idAMapPositionPickerLocation");
@@ -278,12 +281,11 @@
             } else {
                 $alert.hide();
                 $modal.modal('hide');
-                context._onPickedCallback(cachePosition.copy({address: address})); //返回一个新的数据实例
+                context._onPickedCallback(cachePosition.copy({address: address}));
             }
         }
 
         function startSearch() {
-            console.log('End search');
             mapObj.off('click', mapClickClickHandler);
             $resetBtn.prop('disabled', true);
             $clearBtn.prop('disabled', true);
@@ -294,7 +296,8 @@
                         var b = mapObj.getBounds();
                         var placeSearch = new AMap.PlaceSearch({
                             pageSize: 6,
-                            pageIndex: 1
+                            pageIndex: 1,
+                            extensions: 'all' // return full address for POI
                         });
                         // Search in the given bound
                         placeSearch.searchInBounds($searchInput.val(), b, function (status, result) {
@@ -306,9 +309,9 @@
                             if (status == 'complete') {
                                 for (var i in result.poiList.pois) {
                                     var poi = result.poiList.pois[i];
-                                    var li = $('<li class="list-group-item"><small>' + poi.name + '</small></li>');
+                                    var li = $('<li class="list-group-item"><small>{name}</small></li>'.format({name: poi.name}));
                                     $searchPanel.append(li);
-                                    var mMarker = createMarker(new Position(poi.location.lng, poi.location.lat, ''));
+                                    var mMarker = createMarker(new Position(poi.location.lng, poi.location.lat, poi.address));
                                     markerList.push(mMarker);
                                 }
                                 mapObj.panTo(markerList[0].getPosition());
@@ -322,7 +325,6 @@
         }
 
         function endSearch() {
-            console.log('End search');
             mapObj.on('click', mapClickClickHandler);
             $resetBtn.prop('disabled', false);
             $clearBtn.prop('disabled', false);
@@ -345,7 +347,6 @@
                 extData: position
             });
             _marker.on('click', function (e) {
-                console.log('Click mark');
                 queryAddress(e.target);
                 showThisMarker(e.target);
             });
@@ -376,7 +377,6 @@
         //3
         function showThisMarker(cMarker) {
             marker = cMarker;
-            console.log(cMarker);
             cachePosition.longitude = cMarker.getPosition().lng;
             cachePosition.latitude = cMarker.getPosition().lat;
             $addressInput.val(cMarker.getExtData().address);
@@ -384,7 +384,7 @@
         }
 
         function createMapMarker(lnglat, address, name) {
-            //TODO 废弃
+            //TODO Deprecated
             var mMarker = new AMap.Marker({
                 map: mapObj,
                 position: lnglat,
@@ -407,7 +407,7 @@
             var p = context.position();
             if (p && p.isValid()) {
                 cachePosition = p;
-                showPositionOnMap(context.position()); // 显示位置
+                showPositionOnMap(context.position());
             } else {
                 if (marker) {
                     marker.setMap(null);
@@ -421,7 +421,7 @@
         }
 
         function showPositionOnMap(position, lnglat, hasMarker) {
-            // TODO 废弃
+            // TODO Deprecated
             if (hasMarker == undefined) {
                 hasMarker = false;
             }
@@ -503,7 +503,7 @@
             options.onPicked(mPosition);
         };
 
-        // 公有 API
+        // Public API
 
         picker.getInitialPosition = function () {
             return initialPosition;
@@ -575,7 +575,7 @@
                             longitude: $this.data('centerLongitude'),
                             latitude: $this.data('centerLatitude')
                         }
-                    }; // 处理data-*属性
+                    };
                     options = $.extend(true, {}, $.fn.AMapPositionPicker.defaults, dataOptions, options);
                     $this.data('AMapPositionPicker', aMapPositionPicker($this, options));
                 }
@@ -603,7 +603,6 @@
         onPicked: function (position) {
         },
         value: {
-            //初始化位置
             longitude: null,
             latitude: null,
             address: null
@@ -613,7 +612,7 @@
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.6.0';
+    $.fn.AMapPositionPicker.version = 'v0.7.0';
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
     });
