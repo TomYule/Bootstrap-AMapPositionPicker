@@ -7,7 +7,7 @@
     if (typeof define === 'function' && define.amd) {
         define(['jquery', 'AMap'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('jquery'));
+        module.exports = factory(require('jquery'), require('AMap'));
     } else {
         if (typeof jQuery === 'undefined') {
             throw 'bootstrap.AMapPositionPicker requires jQuery to be loaded first';
@@ -309,13 +309,6 @@
                                     var li = $('<li class="list-group-item"><small>' + poi.name + '</small></li>');
                                     $searchPanel.append(li);
                                     var mMarker = createMarker(new Position(poi.location.lng, poi.location.lat, ''));
-                                    // TODO 增加响应
-                                    //AMap.event.addListener(mMarker, 'click', function (e) {
-                                    //    console.log('Click mark in the search');
-                                    //    cachePosition.longitude = e.lnglat.lng;
-                                    //    cachePosition.latitude = e.lnglat.lat;
-                                    //    showPositionOnMap(undefined, e.lnglat, false);
-                                    //});
                                     markerList.push(mMarker);
                                 }
                                 mapObj.panTo(markerList[0].getPosition());
@@ -382,7 +375,6 @@
 
         //3
         function showThisMarker(cMarker) {
-            console.log('showThisMarker');
             marker = cMarker;
             console.log(cMarker);
             cachePosition.longitude = cMarker.getPosition().lng;
