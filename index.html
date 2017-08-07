@@ -157,6 +157,9 @@ $("#id_address_input").AMapPositionPicker();</pre>
 			<h3>title</h3>
 			<p>String. 默认值：'请选择地址'. data属性：<code>data-title</code></p>
 			<p>Modal标题名称。</p>
+			  <h3>errorTip</h3>
+			  <p>String. 默认值：'请选择地址'. data属性：<code>data-error-tip</code></p>
+			  <p>未选择位置的错误提示文字。</p>
 			<h3>height</h3>
 			<p>String. 默认值：'500px'. data属性：<code>data-height</code></p>
 			<p>地图控件的高度。宽度按照Modal自适应设置。</p>
@@ -187,6 +190,15 @@ $("#id_address_input").AMapPositionPicker();</pre>
 				  <h1>日志</h1>
 			  </div>
               <p>使用 <code>$.fn.AMapPositionPicker.version</code> 获取当前插件版本信息。</p>
+			  <h3>v0.8.0</h3>
+			  <ul>
+				  <li>重构插件逻辑</li>
+				  <li>新增 `errorTip` 选项</li>
+				  <li>点标记时新增鼠标滑过的文字提示</li>
+				  <li>增加搜索按钮切换效果</li>
+				  <li>增加点标记动画效果</li>
+				  <li>POI地址改由地理逆编码获取</li>
+			  </ul>
 			  <h3>v0.7.0</h3>
               <ul>
                   <li>新增搜索功能。</li>

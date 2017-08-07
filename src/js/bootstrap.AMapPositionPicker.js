@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.7.0
+ * BootstrapAMapPositionPicker v0.8.0
  * @author: Kinegratii
  */
 (function (factory) {
@@ -138,7 +138,7 @@
 
     // Data Structure End
 
-    function buildModalHtml() {
+    function buildBootstrapModalHTML() {
         var toolsHtml = '<div class="btn-group">'
             + '<button id="idAMapPositionPickerLocation" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;定位</button>'
             + '<button id="idAMapPositionPickerReset" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-repeat"></span>&nbsp;重置</button>'
@@ -166,30 +166,63 @@
         return modalHtml;
     }
 
-
-    var pickerModal = (function () {
+    var PICKER_CONTROLLER = (function () {
         // Common Modal Controller for all elements
-        var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn;
-        var $searchPanel, $searchInput;
-        var context = null, contextOptions = null;
-        var mapObj = null, geolocation;
-        var markerList = [], marker = null;
-        var pickedMarker;
 
-        //init modal
+        // Context pick
+        var mPicker = null;
+        var mapObj = null;
+
+        var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn;
+
+        // Current picked
+        var selectedMarker = null;
         var cachePosition = Position.empty();
+        // Search plugin
+        var $searchBtn, $searchPanel, $searchInput, $searchResultList;
+        var markerList = [];
+
+        var geolocation;
+
 
         var mapClickClickHandler = function (e) {
             $alert.hide();
-            cachePosition.longitude = e.lnglat.lng;
-            cachePosition.latitude = e.lnglat.lat;
-            showPositionOnMap(undefined, e.lnglat);
+            selectMarker(createMarkerFromLnglat(e.lnglat.lng, e.lnglat.lat));
         };
 
+        function activate(picker) {
+            mPicker = picker;
+            showModal();
+        }
 
-        function initModal() {
+        function deactivate() {
+            mPicker = null;
+        }
+
+        function showModal() {
+            initializeController();
+            initializePicker();
+
+            var p = mPicker.position();
+            if (p && p.isValid()) {
+                selectMarker(createMarkerFromPosition(p));
+            } else {
+                if (selectedMarker) {
+                    selectedMarker.setMap(null);
+                }
+                $addressInput.val('');
+                if (mPicker.opts.center.longitude && mPicker.opts.center.latitude) {
+                    mapObj.setCenter(new AMap.LngLat(mPicker.opts.center.longitude, mPicker.opts.center.latitude));
+                }
+            }
+            $modal.modal('show');
+        }
+
+
+        function initializeController() {
+            // Initialize global options
             if ($modal == null) {
-                $modal = $(buildModalHtml());
+                $modal = $(buildBootstrapModalHTML());
                 $(document.body).append($modal);
                 mapObj = new AMap.Map("idAMapPositionPickerMap", {
                     zoom: 15
@@ -220,24 +253,30 @@
                 $clearBtn = $("#idAMapPositionPickerClear");
                 $addressInput = $("#idAMapPositionPickerAddress");
                 $alert = $("#idAMapPositionPickerAlert");
+
+                $searchBtn = $("#idAMapPositionPickerSearch");
                 $searchPanel = $("#idAMapPositionPickerSearchPanel");
                 $searchInput = $("#idAMapPositionPickerSearchInput");
+                $searchResultList = $("#idAMapPositionPickerSearchResult");
 
                 $pickBtn.on('click', pickPosition);
                 $resetBtn.on('click', resetInitialPosition);
                 $clearBtn.on('click', clearPosition);
                 $locationBtn.on('click', location);
                 $searchPanel.on('show.bs.collapse', function () {
+                    $searchBtn.removeClass('btn-default').addClass('btn-primary');
                     startSearch();
                 }).on('hide.bs.collapse', function () {
+                    $searchBtn.removeClass('btn-primary').addClass('btn-default');
                     endSearch();
                 });
+                $('ul#idAMapPositionPickerSearchResult').on('click', 'li[data-poi-index]', highlightMarker);
             }
         }
 
-        function initialModalUI(options) {
-            $map.css('height', options.height);
-            $modal.find('h4.modal-title').html(options.title);
+        function initializePicker() {
+            $map.css('height', mPicker.opts.height);
+            $modal.find('h4.modal-title').html(mPicker.opts.title);
             $alert.hide();
 
         }
@@ -246,10 +285,7 @@
             $alert.hide();
             geolocation.getCurrentPosition(function (status, result) {
                 if (status == 'complete') {
-                    cachePosition.longitude = result.position.lng;
-                    cachePosition.latitude = result.position.lat;
-                    cachePosition.address = result.formattedAddress;
-                    showPositionOnMap(cachePosition);
+                    selectMarker(createMarkerFromLnglat(result.position.lng, result.position.lat, result.formattedAddress))
                 } else {
                     $alert.html(result.message).show();
                 }
@@ -258,30 +294,40 @@
 
         function clearPosition() {
             cachePosition = Position.empty();
-            marker.setMap(null);
+            if (selectedMarker != null) {
+                selectedMarker.setMap(null);
+            }
             $addressInput.val('');
         }
 
         function resetInitialPosition() {
-            cachePosition = context.getInitialPosition();
+            cachePosition = mPicker.getInitialPosition();
             if (Position.validate(cachePosition)) {
-                showPositionOnMap(cachePosition);
-            } else {
-                marker.setMap(null);
+                selectMarker(createMarkerFromPosition(cachePosition));
+            } else if (selectedMarker != null) {
+                selectedMarker.setMap(null);
                 $addressInput.val('');
             }
-
         }
 
         function pickPosition() {
             var address = $addressInput.val();
             cachePosition.address = address;
-            if (contextOptions.required && !cachePosition.isValid()) {
-                $alert.html('请选择地址').show();
+            if (mPicker.opts.required && !cachePosition.isValid()) {
+                $alert.html(mPicker.opts.errorTip).show();
             } else {
                 $alert.hide();
                 $modal.modal('hide');
-                context._onPickedCallback(cachePosition.copy({address: address}));
+                mPicker._onPickedCallback(cachePosition.copy({address: address}));
+            }
+        }
+
+        // Search Start
+        function highlightMarker(e) {
+
+            var index = $(this).data('poiIndex');
+            if (index < markerList.length) {
+                markerList[index].resumeMove();
             }
         }
 
@@ -290,18 +336,19 @@
             $resetBtn.prop('disabled', true);
             $clearBtn.prop('disabled', true);
             $locationBtn.prop('disabled', true);
+
             $searchInput.on('keydown', function (e) {
-                if (e.which == '13' && $searchInput.val().length > 0) { //Enter
+                var searchKeyword = $searchInput.val();
+                if (e.which == '13' && searchKeyword.length > 0) { //Enter
                     AMap.service('AMap.PlaceSearch', function () {
-                        var b = mapObj.getBounds();
                         var placeSearch = new AMap.PlaceSearch({
                             pageSize: 6,
                             pageIndex: 1,
                             extensions: 'all' // return full address for POI
                         });
                         // Search in the given bound
-                        placeSearch.searchInBounds($searchInput.val(), b, function (status, result) {
-                            $searchPanel.children('li').remove();
+                        placeSearch.searchInBounds(searchKeyword, mapObj.getBounds(), function (status, result) {
+                            $searchResultList.children('li').remove();
                             for (var i in markerList) {
                                 markerList[i].setMap(null);
                             }
@@ -309,14 +356,21 @@
                             if (status == 'complete') {
                                 for (var i in result.poiList.pois) {
                                     var poi = result.poiList.pois[i];
-                                    var li = $('<li class="list-group-item"><small>{name}</small></li>'.format({name: poi.name}));
-                                    $searchPanel.append(li);
-                                    var mMarker = createMarker(new Position(poi.location.lng, poi.location.lat, poi.address));
+                                    var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
+                                        i: i,
+                                        name: poi.name
+                                    }));
+                                    $searchResultList.append(li);
+                                    // delay to username poi.address
+                                    var mMarker = createMarkerFromLnglat(poi.location.lng, poi.location.lat);
+                                    mMarker.on('click', function (e) {
+                                        selectMarker(e.target);
+                                    });
                                     markerList.push(mMarker);
                                 }
                                 mapObj.panTo(markerList[0].getPosition());
                             } else {
-                                $searchPanel.append('<li><small>抱歉，暂无找到符合条件的结果。</small></li>');
+                                $searchPanel.append('<li class="list-group-item disabled"><small>抱歉，暂无找到符合条件的结果。</small></li>');
                             }
                         });
                     });
@@ -334,28 +388,42 @@
                 markerList[i].setMap(null);
             }
             markerList = [];
-            $searchPanel.children('li').remove();
+            $searchResultList.children('li').remove();
         }
 
-        //1
-        function createMarker(position) {
-            var _marker = new AMap.Marker({
+        // Search End
+
+
+        // New tools
+
+        function createMarkerFromPosition(position) {
+            var markerOpts = {
                 map: mapObj,
                 position: new AMap.LngLat(position.longitude, position.latitude),
                 topWhenClick: true,
                 offset: new AMap.Pixel(-5, -30),
+                animation: 'AMAP_ANIMATION_DROP',
                 extData: position
-            });
-            _marker.on('click', function (e) {
-                queryAddress(e.target);
-                showThisMarker(e.target);
-            });
-            return _marker;
+            };
+            if (position.address) {
+                markerOpts.title = position.address;
+            }
+            var marker = new AMap.Marker(markerOpts);
+            return marker;
         }
 
-        //2
-        function queryAddress(marker) {
+        function createMarkerFromLnglat(longitude, latitude, address) {
+            var position = new Position(longitude, latitude, address);
+            return createMarkerFromPosition(position);
+        }
+
+        function selectMarker(marker) {
+            selectedMarker = marker;
             var position = marker.getExtData();
+            var lngLat = marker.getPosition();
+
+            cachePosition.longitude = position.longitude;
+            cachePosition.latitude = position.latitude;
             if (!position.address) {
                 var geocoder;
                 mapObj.plugin(["AMap.Geocoder"], function () {
@@ -365,123 +433,28 @@
                     });
                     AMap.event.addListener(geocoder, "complete", function (GeocoderResult) {
                         if (GeocoderResult["info"] == "OK") {
-                            position.address = GeocoderResult.regeocode.formattedAddress;
-                            marker.setExtData(position);
+                            var address = GeocoderResult.regeocode.formattedAddress;
+                            position.address = address;
+                            selectedMarker.setExtData(position);
+                            cachePosition.address = address;
+                            $addressInput.val(address);
+                            mapObj.panTo(lngLat);
                         }
                     });
-                    geocoder.getAddress(marker.getPosition());
+                    geocoder.getAddress(lngLat);
                 });
-            }
-        }
-
-        //3
-        function showThisMarker(cMarker) {
-            marker = cMarker;
-            cachePosition.longitude = cMarker.getPosition().lng;
-            cachePosition.latitude = cMarker.getPosition().lat;
-            $addressInput.val(cMarker.getExtData().address);
-            mapObj.panTo(cMarker.getPosition());
-        }
-
-        function createMapMarker(lnglat, address, name) {
-            //TODO Deprecated
-            var mMarker = new AMap.Marker({
-                map: mapObj,
-                position: lnglat,
-                topWhenClick: true,
-                offset: new AMap.Pixel(-5, -30)
-            });
-            var _onClick = function (e) {
-                $alert.hide();
-                cachePosition.longitude = e.lnglat.lng;
-                cachePosition.latitude = e.lnglat.lat;
-                showPositionOnMap(undefined, e.lnglat, true);
-            };
-            AMap.event.addListener(mMarker, 'click', _onClick);
-            return mMarker;
-        }
-
-        function showModal() {
-            initModal();
-            initialModalUI(contextOptions);
-            var p = context.position();
-            if (p && p.isValid()) {
-                cachePosition = p;
-                showPositionOnMap(context.position());
             } else {
-                if (marker) {
-                    marker.setMap(null);
-                }
-                $addressInput.val('');
-                if (contextOptions.center.longitude && contextOptions.center.latitude) {
-                    mapObj.setCenter(new AMap.LngLat(contextOptions.center.longitude, contextOptions.center.latitude));
-                }
-            }
-            $modal.modal('show');
-        }
-
-        function showPositionOnMap(position, lnglat, hasMarker) {
-            // TODO Deprecated
-            if (hasMarker == undefined) {
-                hasMarker = false;
-            }
-            var address = "";
-            if (lnglat == undefined) {
-                if (Position.validate(position)) {
-                    lnglat = new AMap.LngLat(position.longitude, position.latitude);
-                    address = position.address;
-                } else {
-                    return;
-                }
-            }
-
-            if (address) {
-                _showPositionOnMap();
-            } else {
-                var geocoder;
-                mapObj.plugin(["AMap.Geocoder"], function () {
-                    geocoder = new AMap.Geocoder({
-                        radius: 1000,
-                        extensions: "base"
-                    });
-                    AMap.event.addListener(geocoder, "complete", function (GeocoderResult) {
-                        if (GeocoderResult["info"] == "OK") {
-                            address = GeocoderResult.regeocode.formattedAddress;
-                        } else {
-                        }
-                        _showPositionOnMap();
-                    });
-                    geocoder.getAddress(lnglat);
-                });
-            }
-
-            function _showPositionOnMap() {
-                if (marker != null) {
-                    marker.setMap(null);
-                }
-                if (!hasMarker) {
-                    marker = new AMap.Marker({
-                        map: mapObj,
-                        position: lnglat,
-                        topWhenClick: true,
-                        offset: new AMap.Pixel(-5, -30)
-                    });
-                }
-                $addressInput.val(address);
-                mapObj.setCenter(lnglat);
+                cachePosition.address = position.address;
+                mapObj.panTo(lngLat);
+                $addressInput.val(position.address);
             }
         }
+
+        // End Tool functions
 
         return {
-            showModal: showModal,
-            startContext: function (mContext, mContextOptions) {
-                context = mContext;
-                contextOptions = mContextOptions;
-                return this;
-            },
-            endContext: function () {
-                return this;
-            }
+            activate: activate,
+            deactivate: activate
         }
     })();
 
@@ -524,7 +497,7 @@
             $inputEl = element.children('input');
         }
         $inputEl.prop("readonly", true);
-        //初始位置
+        //Handle initial data
         if (Position.LNGLAT_FORMATTER.indexOf(options.formatter)) {
             var result = Position.validateLngLat($inputEl.val());
             if (result) {
@@ -534,10 +507,10 @@
         }
         var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address);
         element.data('position', initialPosition.copy());
-        //事件注册
+        // Register events
         element.on('click', function () {
             //show modal/
-            pickerModal.startContext(picker, options).showModal();
+            PICKER_CONTROLLER.activate(picker);
         });
         // 处理fields
         var fields = options.fields || [];
@@ -548,6 +521,8 @@
             }
             picker.inputElList.push(iEl);
         }
+
+        picker.opts = options;
         return picker;
     };
 
@@ -564,6 +539,7 @@
                     var dataOptions = {
                         formatter: $this.data('formatter'),
                         title: $this.data('title'),
+                        errorTip: $this.data('errorTip'),
                         height: $this.data('height'),
                         required: $this.data('required'),
                         value: {
@@ -609,10 +585,11 @@
         },
         required: true,
         title: '请选择地址',
+        errorTip: '请选择地址',
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.7.0';
+    $.fn.AMapPositionPicker.version = 'v0.8.0';
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
     });

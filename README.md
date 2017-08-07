@@ -46,7 +46,7 @@ $("#id_address_input").AMapPositionPicker();
 生成 release 文件
 
 ```
-gulp scripts
+gulp release
 ```
 
 ## 测试
