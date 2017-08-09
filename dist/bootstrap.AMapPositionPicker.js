@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.8.0
+ * BootstrapAMapPositionPicker v0.8.1
  * @author: Kinegratii
  */
 (function (factory) {
@@ -310,15 +310,29 @@
             }
         }
 
+        function hasPicked() {
+            return cachePosition.isValid();
+        }
+
         function pickPosition() {
             var address = $addressInput.val();
             cachePosition.address = address;
-            if (mPicker.opts.required && !cachePosition.isValid()) {
+
+            // Always use new position instance
+            var pickedPosition;
+            var hasPicked = hasPicked();
+            if (hasPicked) {
+                pickedPosition = cachePosition.copy();
+            } else {
+                pickedPosition = Position.empty();
+            }
+
+            if (mPicker.opts.required && !hasPicked) {
                 $alert.html(mPicker.opts.errorTip).show();
             } else {
                 $alert.hide();
                 $modal.modal('hide');
-                mPicker._onPickedCallback(cachePosition.copy({address: address}));
+                mPicker._onPickedCallback(pickedPosition, hasPicked);
             }
         }
 
@@ -418,6 +432,7 @@
         }
 
         function selectMarker(marker) {
+            clearPosition();
             selectedMarker = marker;
             var position = marker.getExtData();
             var lngLat = marker.getPosition();
@@ -467,13 +482,22 @@
         };
         var $inputEl = null;
 
-        picker._onPickedCallback = function (mPosition) {
+        function triggerPickedComplete(mPosition, hasPicked) {
+            if (options.onPicked) {
+                options.onPicked(mPosition)
+            } else {
+                element.trigger('AMPP.PickCompleted', [mPosition, hasPicked]);
+            }
+        }
+
+        // API for PICKER_CONTROLLER
+        picker._onPickedCallback = function (mPosition, hasPicked) {
             picker.position(mPosition);
             $inputEl.val(wrapFormat(options.formatter, mPosition));
             for (var i in picker.inputElList) {
                 picker.inputElList[i].render(mPosition);
             }
-            options.onPicked(mPosition);
+            triggerPickedComplete(mPosition, hasPicked);
         };
 
         // Public API
@@ -576,8 +600,7 @@
     };
     $.fn.AMapPositionPicker.defaults = {
         formatter: '{address}',
-        onPicked: function (position) {
-        },
+        onPicked: null,
         value: {
             longitude: null,
             latitude: null,
@@ -589,7 +612,7 @@
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.8.0';
+    $.fn.AMapPositionPicker.version = 'v0.8.1';
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
     });
