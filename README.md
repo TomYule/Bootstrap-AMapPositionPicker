@@ -18,7 +18,7 @@ bootstrap.AMapPositionPicker是一款基于高德地图的位置选择插件，�
 
 1. 依次引入高德地图JS、jQuery、Bootstrap和bootstrap.AMapPositionPicker.min.js文件。
 
-```
+```html
 <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=您申请的key值"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
@@ -29,13 +29,13 @@ bootstrap.AMapPositionPicker是一款基于高德地图的位置选择插件，�
 
 html代码
 
-```
+```html
 <input type="text" id="id_address_input" name="address"/>
 ```
 
 JS代码
 
-```
+```javascript
 $("#id_address_input").AMapPositionPicker();
 ```
 

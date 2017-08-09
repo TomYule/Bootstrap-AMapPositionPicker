@@ -310,7 +310,7 @@
             }
         }
 
-        function hasPicked() {
+        function isPositionPicked() {
             return cachePosition.isValid();
         }
 
@@ -320,7 +320,7 @@
 
             // Always use new position instance
             var pickedPosition;
-            var hasPicked = hasPicked();
+            var hasPicked = isPositionPicked();
             if (hasPicked) {
                 pickedPosition = cachePosition.copy();
             } else {
