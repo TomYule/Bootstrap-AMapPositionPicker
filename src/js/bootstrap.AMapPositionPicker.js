@@ -310,13 +310,17 @@
             }
         }
 
+        function hasPicked() {
+            return cachePosition.isValid();
+        }
+
         function pickPosition() {
             var address = $addressInput.val();
             cachePosition.address = address;
 
-            var pickedPosition;
             // Always use new position instance
-            var hasPicked = cachePosition.isValid();
+            var pickedPosition;
+            var hasPicked = hasPicked();
             if (hasPicked) {
                 pickedPosition = cachePosition.copy();
             } else {
@@ -428,6 +432,7 @@
         }
 
         function selectMarker(marker) {
+            clearPosition();
             selectedMarker = marker;
             var position = marker.getExtData();
             var lngLat = marker.getPosition();
