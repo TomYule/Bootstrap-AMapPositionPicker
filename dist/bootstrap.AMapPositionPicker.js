@@ -146,7 +146,7 @@
             + '<button id="idAMapPositionPickerSearch" type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-target="#idAMapPositionPickerSearchPanel"><span class="glyphicon glyphicon-search"></span>&nbsp;搜索</button>'
             + '</div>';
         var searchPanelHtml = '<div id="idAMapPositionPickerSearchPanel" class="collapse"><input class="form-control input-sm" id="idAMapPositionPickerSearchInput"/><ul id="idAMapPositionPickerSearchResult" class="list-group"></ul></div>';
-        var mapPanelHtml = '<div style="position: absolute;z-index: 2;top:5px;right: 5px;">' + toolsHtml + searchPanelHtml + '</div>';
+        var mapPanelHtml = '<div id="idAMapPositionPickerFloatContainer" style="position: absolute;z-index: 2;top:5px;right: 5px;">' + toolsHtml + searchPanelHtml + '</div>';
         var modalHtml = '<div class="modal fade" id="idAMapPositionPickerModal">'
             + '<div class="modal-dialog">'
             + '<div class="modal-content">'
@@ -158,7 +158,7 @@
             + '<input class="form-control input-sm" style="margin-top:5px;" id="idAMapPositionPickerAddress"/>'
             + '</div>' //End of modal-Body
             + '<div class="modal-footer">'
-            + '<button id="idAMapPositionPickerSelect" type="button" class="btn btn-primary btn-sm">确定</button><button type="button" class="btn btn-default btn-sm" data-dismiss="modal">取消</button>'
+            + '<button id="idAMapPositionPickerSelect" type="button" class="btn btn-primary btn-sm">确定</button><button id="idAMapPositionPickerCancelBtn" type="button" class="btn btn-default btn-sm" data-dismiss="modal">取消</button>'
             + '</div>' //End of Modal-footer
             + '</div>' //End of Modal-content
             + '</div>' // End of Modal-dialog
@@ -173,7 +173,9 @@
         var mPicker = null;
         var mapObj = null;
 
-        var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn;
+        var isShowOrPickMode = false;
+
+        var $modal = null, $map, $addressInput, $alert, $pickBtn, $locationBtn, $resetBtn, $clearBtn, $cancelBtn;
 
         // Current picked
         var selectedMarker = null;
@@ -252,6 +254,7 @@
                 $resetBtn = $("#idAMapPositionPickerReset");
                 $clearBtn = $("#idAMapPositionPickerClear");
                 $addressInput = $("#idAMapPositionPickerAddress");
+                $cancelBtn = $("#idAMapPositionPickerCancelBtn");
                 $alert = $("#idAMapPositionPickerAlert");
 
                 $searchBtn = $("#idAMapPositionPickerSearch");
@@ -275,6 +278,7 @@
         }
 
         function initializePicker() {
+            toggleMode(false);
             $map.css('height', mPicker.opts.height);
             $modal.find('h4.modal-title').html(mPicker.opts.title);
             $alert.hide();
@@ -315,6 +319,10 @@
         }
 
         function pickPosition() {
+            if (isShowOrPickMode) {
+                $modal.modal('hide');
+                return;
+            }
             var address = $addressInput.val();
             cachePosition.address = address;
 
@@ -467,9 +475,37 @@
 
         // End Tool functions
 
+        function toggleMode(isShowOrPick) {
+            isShowOrPickMode = isShowOrPick;
+
+            $addressInput.prop('readonly', isShowOrPick);
+            if (isShowOrPick) {
+                $cancelBtn.hide();
+                $alert.hide();
+                $('#idAMapPositionPickerFloatContainer').hide();
+            } else {
+                $('#idAMapPositionPickerFloatContainer').show();
+                $cancelBtn.show();
+            }
+
+        }
+
+        function showPositionInMap(position) {
+            initializeController();
+            toggleMode(true);
+            clearPosition();
+            var mMarker = createMarkerFromPosition(position);
+            mapObj.panTo(mMarker.getPosition());
+            $addressInput.val(position.address);
+            $modal.modal('show');
+
+        }
+
         return {
             activate: activate,
-            deactivate: activate
+            deactivate: activate,
+            //Tools
+            showPositionInMap: showPositionInMap
         }
     })();
 
@@ -612,7 +648,13 @@
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.8.1';
+    $.extend({AMapPositionPicker: {}});
+    $.extend($.AMapPositionPicker, {
+        showPositionInMap: function (position) {
+            PICKER_CONTROLLER.showPositionInMap(position);
+        },
+		pluginVersion: '0.8.1'
+    });
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
     });

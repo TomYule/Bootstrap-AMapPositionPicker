@@ -648,12 +648,12 @@
         height: '500px',
         fields: []
     };
-    $.fn.AMapPositionPicker.version = 'v0.8.1';
     $.extend({AMapPositionPicker: {}});
     $.extend($.AMapPositionPicker, {
         showPositionInMap: function (position) {
             PICKER_CONTROLLER.showPositionInMap(position);
-        }
+        },
+		pluginVersion: '0.8.1'
     });
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
