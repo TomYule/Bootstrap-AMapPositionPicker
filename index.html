@@ -69,8 +69,11 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div id="id-navbar-collapse-1" class="collapse navbar-collapse">
 
-		<ul class="nav navbar-nav navbar-right">
+		<ul class="nav navbar-nav">
+			<li class="active"><a href="javascript:"><span class="glyphicon glyphicon-home"></span>&nbsp;首页</a></li>
 		<li><a href="./demo.html"><span class="glyphicon glyphicon-align-justify"></span>&nbsp;示例</a></li>
+			</ul>
+		<ul class="nav navbar-nav navbar-right">
 		<li><a href="https://gitee.com/kinegratii/Bootstrap-AMapPositionPicker" target="_blank"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;源码</a></li>
 		<li><a target="_blank" href="https://kinegratii.github.io/"><span class="glyphicon glyphicon-th"></span>&nbsp;博客</a></li>
 		</ul>
@@ -88,6 +91,7 @@
 			  <li><a href="#n_options">选项</a></li>
 			  <li><a href="#n_method">方法</a></li>
 				<li><a href="#n_event">事件</a></li>
+				<li><a href="#n_tool">工具</a></li>
 				<li><a href="#n_changelog">日志</a></li>
 			  <li><a href="#n_licence">协议</a></li>
 			</ul>
@@ -201,10 +205,27 @@ $("#id_address_input").AMapPositionPicker();</pre>
                   <li>position:位置对象。</li>
                   <li>hasPicked：表明是否已经选择了一个位置。通常用于非必填项(<code>required=false</code>)的情况。</li>
               </ul>
+			  <div class="page-header" id="n_tool">
+				  <h1>工具</h1>
+			  </div>
+			  <p>位置选择插件提供了若干个工具函数和变量。调用形式为 <code>$.AMapPositionPicker.FOO( ...args)</code> 或者 <code>$.AMapPositionPicker.FOO</code> 。</p>
+			  <h3>showPositionInMap</h3>
+			  <p>函数签名：<code>showPositionInMap(position)</code>；在地图上显示点标记。</p>
+			  <p>参数</p>
+			  <ul>
+				  <li>position:位置对象。</li>
+			  </ul>
+			  <h3>pluginVersion</h3>
+			  <p>插件版本字符串常量，如 <code>1.0.0</code>。</p>
 			  <div class="page-header" id="n_changelog">
 				  <h1>日志</h1>
 			  </div>
-              <p>使用 <code>$.fn.AMapPositionPicker.version</code> 获取当前插件版本信息。</p>
+              <p>使用 <code>$.AMapPositionPicker.pluginVersion</code> 获取当前插件版本信息。</p>
+			  <h3>v0.8.2</h3>
+			  <ul>
+				  <li>新增工具：在地图显示点标记。</li>
+				  <li>版本获取移到工具 <code>$.AMapPositionPicker</code>， 版本字符串去掉 <code>v</code>前缀。</li>
+			  </ul>
 			  <h3>v0.8.1</h3>
 			  <ul>
 				  <li>修正重复显示已选择点标记的bug</li>
@@ -277,7 +298,7 @@ $("#id_address_input").AMapPositionPicker();</pre>
 	<script src="./dist/bootstrap.AMapPositionPicker.js"></script>
 	<script type="text/javascript">
 	$(document).ready(function(){
-	    $("#id_latest_version").html('最新版本 ' + $.fn.AMapPositionPicker.version);
+	    $("#id_latest_version").html('最新版本 v' + $.AMapPositionPicker.pluginVersion);
 	    var p1 = $("#id_address_input").AMapPositionPicker();
 		$("#id_get_data").on('click', function(){
 		    $("#id_data_dispaly").html(JSON.stringify(p1.AMapPositionPicker('position')));
