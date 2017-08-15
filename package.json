@@ -1,6 +1,6 @@
 {
   "name": "amap-position-picker",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "A position picker for amap.",
   "main": "src/js/bootstrap.AMapPositionPicker.js",
   "scripts": {

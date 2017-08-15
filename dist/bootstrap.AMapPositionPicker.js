@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.8.1
+ * BootstrapAMapPositionPicker v0.8.2
  * @author: Kinegratii
  */
 (function (factory) {
@@ -653,7 +653,7 @@
         showPositionInMap: function (position) {
             PICKER_CONTROLLER.showPositionInMap(position);
         },
-		pluginVersion: '0.8.1'
+		pluginVersion: '0.8.2'
     });
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
