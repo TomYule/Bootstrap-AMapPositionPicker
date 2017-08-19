@@ -129,7 +129,11 @@
 
         Field.prototype.render = function (data) {
             var s = this.formatter(data);
-            this.$widget.val(s);
+            if (this.$widget.is('input') || this.$widget.is('textarea')) {
+                this.$widget.val(s);
+            } else if (this.$widget.is('div') || this.$widget.is('td')) {
+                this.$widget.html(s);
+            }
         };
 
         return Field;
@@ -653,7 +657,7 @@
         showPositionInMap: function (position) {
             PICKER_CONTROLLER.showPositionInMap(position);
         },
-		pluginVersion: '0.8.2'
+        pluginVersion: '0.8.2'
     });
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
