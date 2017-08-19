@@ -10,10 +10,10 @@
         module.exports = factory(require('jquery'), require('AMap'));
     } else {
         if (typeof jQuery === 'undefined') {
-            throw 'bootstrap.AMapPositionPicker requires jQuery to be loaded first';
+            throw 'AMapPositionPicker requires jQuery to be loaded first';
         }
         if (typeof  AMap == 'undefined') {
-            throw 'bootstrap.AMapPositionPicker requires AMap to be loaded first';
+            throw 'AMapPositionPicker requires AMap to be loaded first';
         }
         factory(jQuery, AMap);
     }
@@ -625,7 +625,7 @@
                 var $this = $(this),
                     instance = $this.data('AMapPositionPicker');
                 if (!instance) {
-                    throw new Error('bootstrap.AMapPositionPicker("' + options + '") method was called on an element that is not using AMapPositionPicker');
+                    throw new Error('AMapPositionPicker("' + options + '") method was called on an element that is not using AMapPositionPicker');
                 }
                 returnValue = instance[options].apply(instance, args);
                 isInstance = returnValue === instance;
