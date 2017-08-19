@@ -47,10 +47,11 @@
 
     // Data Structure Start
     var Position = (function () {
-        function Position(longitude, latitude, address) {
+        function Position(longitude, latitude, address, label) {
             this.longitude = longitude;
             this.latitude = latitude;
             this.address = address || '';
+            this.label = label || '';
         }
 
         Position.prototype.isValid = function () {
@@ -58,17 +59,18 @@
         };
         Position.prototype.copy = function (data) {
             if (data == undefined) {
-                return new Position(this.longitude, this.latitude, this.address);
+                return new Position(this.longitude, this.latitude, this.address, this.label);
             } else {
                 return new Position(
                     data.longitude || this.longitude,
                     data.latitude || this.latitude,
-                    data.address || this.address
+                    data.address || this.address,
+                    data.label || this.label
                 );
             }
         };
         Position.empty = function () {
-            return new Position(null, null, "");
+            return new Position(null, null, "","");
         };
         Position.validate = function (position) {
             if (position) {
@@ -439,7 +441,7 @@
         }
 
         function createMarkerFromLnglat(longitude, latitude, address) {
-            var position = new Position(longitude, latitude, address);
+            var position = new Position(longitude, latitude, address, "");
             return createMarkerFromPosition(position);
         }
 
@@ -569,7 +571,7 @@
                 options.value.latitude = parseFloat(result.latitude);
             }
         }
-        var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address);
+        var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address, options.value.label);
         element.data('position', initialPosition.copy());
         // Register events
         element.on('click', function () {
