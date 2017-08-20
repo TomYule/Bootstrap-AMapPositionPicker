@@ -534,7 +534,7 @@
 
         // API for PICKER_CONTROLLER
         picker._onPickedCallback = function (mPosition, hasPicked) {
-            picker.position(mPosition);
+            element.data('position', mPosition);
             $inputEl.val(wrapFormat(options.formatter, mPosition));
             for (var i in picker.inputElList) {
                 picker.inputElList[i].render(mPosition);
@@ -549,6 +549,7 @@
         };
 
         picker.position = function () {
+            var s = JSON.stringify(element.data('position'));
             return element.data('position');
 
         };
