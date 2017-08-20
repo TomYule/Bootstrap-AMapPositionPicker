@@ -92,7 +92,6 @@
 			  <li><a href="#n_method">方法</a></li>
 				<li><a href="#n_event">事件</a></li>
 				<li><a href="#n_tool">工具</a></li>
-				<li><a href="#n_changelog">日志</a></li>
 			  <li><a href="#n_licence">协议</a></li>
 			</ul>
 		  </div>
@@ -179,7 +178,7 @@ $("#id_address_input").AMapPositionPicker();</pre>
   formatter:'{longitude},{latitude}' //value的格式字符串
 }</pre>
 			  <h3>onPicked <small><span class="label label-danger">废弃</span></small></h3>
-			  <p  class="text-muted"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> 此项已废弃，将在v1.0时移除。</p>
+			  <p class="text-muted"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> 此项已废弃，将在v1.0时移除。</p>
 			  <p>函数签名:<code>function(position, hasPicked);</code>。选择完成事件处理函数。参数参见事件 <code>AMPP.PickCompleted</code>。</p>
 
 			<div class="page-header" id="n_method">
@@ -217,45 +216,6 @@ $("#id_address_input").AMapPositionPicker();</pre>
 			  </ul>
 			  <h3>pluginVersion</h3>
 			  <p>插件版本字符串常量，如 <code>1.0.0</code>。</p>
-			  <div class="page-header" id="n_changelog">
-				  <h1>日志</h1>
-			  </div>
-              <p>使用 <code>$.AMapPositionPicker.pluginVersion</code> 获取当前插件版本信息。</p>
-			  <h3>v0.8.2</h3>
-			  <ul>
-				  <li>新增工具：在地图显示点标记。</li>
-				  <li>版本获取移到工具 <code>$.AMapPositionPicker</code>， 版本字符串去掉 <code>v</code>前缀。</li>
-			  </ul>
-			  <h3>v0.8.1</h3>
-			  <ul>
-				  <li>修正重复显示已选择点标记的bug</li>
-				  <li>优化 <code>hasPicked</code> 判断逻辑</li>
-				  <li>新增 <code>AMPP.PickCompleted</code> 事件</li>
-				  <li> <code>AMPP.PickCompleted</code> 事件响应函数增加 <code>hasPicked</code> 参数</li>
-                  <li>选项 <code>onPicked</code>已废弃</li>
-			  </ul>
-			  <h3>v0.8.0</h3>
-			  <ul>
-				  <li>重构插件逻辑</li>
-				  <li>新增 <code>errorTip</code> 选项</li>
-				  <li>点标记时新增鼠标滑过的文字提示</li>
-				  <li>增加搜索按钮切换效果</li>
-				  <li>增加点标记动画效果</li>
-				  <li>POI地址改由地理逆编码获取</li>
-			  </ul>
-			  <h3>v0.7.0</h3>
-              <ul>
-                  <li>新增搜索功能。</li>
-                  <li>主页迁移至 gitee.com</li>
-              </ul>
-			  <h3>v0.6.0</h3>
-              <ul>
-                  <li>新增浏览器定位功能。</li>
-              </ul>
-              <h3>v0.5.0</h3>
-              <ul>
-                  <li>发布第一个测试版本。</li>
-              </ul>
               <div class="page-header" id="n_licence">
                   <h1>协议</h1>
               </div>

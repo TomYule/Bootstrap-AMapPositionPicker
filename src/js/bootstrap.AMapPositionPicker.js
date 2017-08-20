@@ -70,7 +70,7 @@
             }
         };
         Position.empty = function () {
-            return new Position(null, null, "","");
+            return new Position(null, null, "", "");
         };
         Position.validate = function (position) {
             if (position) {
@@ -548,12 +548,9 @@
             return initialPosition;
         };
 
-        picker.position = function (mPosition) {
-            if (mPosition == undefined) {
-                return element.data('position');
-            } else {
-                element.data('position', mPosition)
-            }
+        picker.position = function () {
+            return element.data('position');
+
         };
 
         //
