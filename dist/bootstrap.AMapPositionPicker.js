@@ -1,5 +1,5 @@
 /**
- * BootstrapAMapPositionPicker v0.8.2
+ * BootstrapAMapPositionPicker v0.8.3
  * @author: Kinegratii
  */
 (function (factory) {
@@ -10,10 +10,10 @@
         module.exports = factory(require('jquery'), require('AMap'));
     } else {
         if (typeof jQuery === 'undefined') {
-            throw 'bootstrap.AMapPositionPicker requires jQuery to be loaded first';
+            throw 'AMapPositionPicker requires jQuery to be loaded first';
         }
         if (typeof  AMap == 'undefined') {
-            throw 'bootstrap.AMapPositionPicker requires AMap to be loaded first';
+            throw 'AMapPositionPicker requires AMap to be loaded first';
         }
         factory(jQuery, AMap);
     }
@@ -47,10 +47,11 @@
 
     // Data Structure Start
     var Position = (function () {
-        function Position(longitude, latitude, address) {
+        function Position(longitude, latitude, address, label) {
             this.longitude = longitude;
             this.latitude = latitude;
             this.address = address || '';
+            this.label = label || '';
         }
 
         Position.prototype.isValid = function () {
@@ -58,17 +59,18 @@
         };
         Position.prototype.copy = function (data) {
             if (data == undefined) {
-                return new Position(this.longitude, this.latitude, this.address);
+                return new Position(this.longitude, this.latitude, this.address, this.label);
             } else {
                 return new Position(
                     data.longitude || this.longitude,
                     data.latitude || this.latitude,
-                    data.address || this.address
+                    data.address || this.address,
+                    data.label || this.label
                 );
             }
         };
         Position.empty = function () {
-            return new Position(null, null, "");
+            return new Position(null, null, "", "");
         };
         Position.validate = function (position) {
             if (position) {
@@ -129,7 +131,11 @@
 
         Field.prototype.render = function (data) {
             var s = this.formatter(data);
-            this.$widget.val(s);
+            if (this.$widget.is('input') || this.$widget.is('textarea')) {
+                this.$widget.val(s);
+            } else if (this.$widget.is('div') || this.$widget.is('td')) {
+                this.$widget.html(s);
+            }
         };
 
         return Field;
@@ -435,7 +441,7 @@
         }
 
         function createMarkerFromLnglat(longitude, latitude, address) {
-            var position = new Position(longitude, latitude, address);
+            var position = new Position(longitude, latitude, address, "");
             return createMarkerFromPosition(position);
         }
 
@@ -528,7 +534,7 @@
 
         // API for PICKER_CONTROLLER
         picker._onPickedCallback = function (mPosition, hasPicked) {
-            picker.position(mPosition);
+            element.data('position', mPosition);
             $inputEl.val(wrapFormat(options.formatter, mPosition));
             for (var i in picker.inputElList) {
                 picker.inputElList[i].render(mPosition);
@@ -542,12 +548,10 @@
             return initialPosition;
         };
 
-        picker.position = function (mPosition) {
-            if (mPosition == undefined) {
-                return element.data('position');
-            } else {
-                element.data('position', mPosition)
-            }
+        picker.position = function () {
+            var s = JSON.stringify(element.data('position'));
+            return element.data('position');
+
         };
 
         //
@@ -565,7 +569,7 @@
                 options.value.latitude = parseFloat(result.latitude);
             }
         }
-        var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address);
+        var initialPosition = new Position(options.value.longitude, options.value.latitude, options.value.address, options.value.label);
         element.data('position', initialPosition.copy());
         // Register events
         element.on('click', function () {
@@ -605,7 +609,8 @@
                         value: {
                             longitude: $this.data('valueLongitude'),
                             latitude: $this.data('valueLatitude'),
-                            address: $this.data('valueAddress')
+                            address: $this.data('valueAddress'),
+							label: $this.data('valueLabel')
                         },
                         center: {
                             longitude: $this.data('centerLongitude'),
@@ -621,7 +626,7 @@
                 var $this = $(this),
                     instance = $this.data('AMapPositionPicker');
                 if (!instance) {
-                    throw new Error('bootstrap.AMapPositionPicker("' + options + '") method was called on an element that is not using AMapPositionPicker');
+                    throw new Error('AMapPositionPicker("' + options + '") method was called on an element that is not using AMapPositionPicker');
                 }
                 returnValue = instance[options].apply(instance, args);
                 isInstance = returnValue === instance;
@@ -653,7 +658,7 @@
         showPositionInMap: function (position) {
             PICKER_CONTROLLER.showPositionInMap(position);
         },
-		pluginVersion: '0.8.2'
+        pluginVersion: '0.8.3'
     });
     $(function () {
         $('[data-provide="AMapPositionPicker"]').AMapPositionPicker();
