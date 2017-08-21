@@ -69,6 +69,20 @@
                 );
             }
         };
+        Position.prototype.getDisplayString = function () {
+            if (this.label) {
+                return this.label;
+            } else {
+                return this.address;
+            }
+        };
+        Position.fromOptions = function (options) {
+            if (options instanceof Position) {
+                return options;
+            } else {
+                return new Position(options.longitude, options.latitude, options.address, options.label);
+            }
+        };
         Position.empty = function () {
             return new Position(null, null, "", "");
         };
@@ -99,11 +113,11 @@
                 return selector.substring(1);
             } else {
                 idIndex += 1;
-                return 'id_bapp_i' + idIndex;
+                return 'id_ampp_i' + idIndex;
             }
         }
 
-        function Field(options, position) {
+        function Field(options) {
             this.name = options.name;
             if (options.selector instanceof jQuery) {
                 this.$widget = options.selector;
@@ -123,22 +137,47 @@
             this.formatter = function (position) {
                 return wrapFormat(options.formatter, position);
             };
-            // 赋值
-            if (Position.validate(position)) {
-                this.$widget.val(this.formatter(position));
-            }
         }
 
-        Field.prototype.render = function (data) {
-            var s = this.formatter(data);
+        Field.prototype.render = function (position, hasPicked) {
+
+            var v;
+            if (hasPicked) {
+                v = this.formatter(position);
+            } else {
+                v = '';
+            }
+            console.log(v);
             if (this.$widget.is('input') || this.$widget.is('textarea')) {
-                this.$widget.val(s);
-            } else if (this.$widget.is('div') || this.$widget.is('td')) {
-                this.$widget.html(s);
+                this.$widget.val(v);
+            } else if (this.$widget.is('div') || this.$widget.is('td') || this.$widget.is('p')) {
+                this.$widget.html(v);
             }
         };
 
         return Field;
+
+    }());
+
+    var FieldManager = (function () {
+        var fields = [];
+
+        function FieldManager() {
+            fields = [];
+        }
+
+        FieldManager.prototype.addField = function (field) {
+            fields.push(field);
+        };
+
+        FieldManager.prototype.render = function (position, hasPicked) {
+            for (var i = 0.; i < fields.length; i++) {
+                fields[i].render(position, hasPicked);
+            }
+
+        };
+
+        return FieldManager;
 
     }());
 
@@ -502,6 +541,7 @@
             clearPosition();
             var mMarker = createMarkerFromPosition(position);
             mapObj.panTo(mMarker.getPosition());
+            $modal.find('h4.modal-title').html(position.getDisplayString());
             $addressInput.val(position.address);
             $modal.modal('show');
 
@@ -520,7 +560,7 @@
         var picker = {
             isFirstLoad: false,
             initialPosition: null,
-            inputElList: []
+            fieldManager: new FieldManager()
         };
         var $inputEl = null;
 
@@ -536,9 +576,7 @@
         picker._onPickedCallback = function (mPosition, hasPicked) {
             element.data('position', mPosition);
             $inputEl.val(wrapFormat(options.formatter, mPosition));
-            for (var i in picker.inputElList) {
-                picker.inputElList[i].render(mPosition);
-            }
+            picker.fieldManager.render(mPosition, hasPicked);
             triggerPickedComplete(mPosition, hasPicked);
         };
 
@@ -583,7 +621,7 @@
             if (!iEl.created) {
                 $inputEl.after(iEl.$widget);
             }
-            picker.inputElList.push(iEl);
+            picker.fieldManager.addField(iEl);
         }
 
         picker.opts = options;
@@ -610,7 +648,7 @@
                             longitude: $this.data('valueLongitude'),
                             latitude: $this.data('valueLatitude'),
                             address: $this.data('valueAddress'),
-							label: $this.data('valueLabel')
+                            label: $this.data('valueLabel')
                         },
                         center: {
                             longitude: $this.data('centerLongitude'),
@@ -656,7 +694,7 @@
     $.extend({AMapPositionPicker: {}});
     $.extend($.AMapPositionPicker, {
         showPositionInMap: function (position) {
-            PICKER_CONTROLLER.showPositionInMap(position);
+            PICKER_CONTROLLER.showPositionInMap(Position.fromOptions(position));
         },
         pluginVersion: '0.8.3'
     });
