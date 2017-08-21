@@ -149,15 +149,18 @@ $("#id_address_input").AMapPositionPicker();</pre>
 			  <h1>选项</h1>
 			</div>
               <p>使用 <code>$(element).AMapPositionPicker(options)</code> 初始化一个位置选择器。</p>
-			<h3>formatter</h3>
-			<p>String. 默认值：'{address}'. data属性：<code>data-formatter</code></p>
-			<p>目标输入框的位置格式字符串，可用的变量包括longitude、latitude、address。使用时用<code>{}</code>将变量包裹起来，并且二者之间不能含有空格。</p>
 			<h3>required</h3>
 			<p>boolean. 默认值：true. data属性：<code>data-required</code></p>
 			<p>是否为必填项。</p>
+			<h3>formatter</h3>
+			<p>String. 默认值：'{address}'. data属性：<code>data-formatter</code></p>
+			<p>目标输入框的位置格式字符串，可用的变量包括longitude、latitude、address。使用时用<code>{}</code>将变量包裹起来，并且二者之间不能含有空格。</p>
 			<h3>value</h3>
 			<p>Position,object. 默认值： null. data属性：<code>data-value-*</code></p>
-			<p>初始位置数据。例如可设置为<code>{longitude:119.300939, latitude:26.075302, address:'测试地址'}</code>。</p>
+			<p>初始位置数据。例如可设置为<code>{longitude:119.300939, latitude:26.075302, address:'测试地址', label:'测试地点'}</code>。</p>
+			<h3>center</h3>
+			object.默认值：null.data属性：<code>data-center-*</code>
+			<p>地图中心位置经纬度，用于未选择位置时地图中心位置，默认为当前城市的中心位置。</p>
 			<h3>title</h3>
 			<p>String. 默认值：'请选择地址'. data属性：<code>data-title</code></p>
 			<p>Modal标题名称。</p>

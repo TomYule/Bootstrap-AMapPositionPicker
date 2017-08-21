@@ -609,7 +609,8 @@
                         value: {
                             longitude: $this.data('valueLongitude'),
                             latitude: $this.data('valueLatitude'),
-                            address: $this.data('valueAddress')
+                            address: $this.data('valueAddress'),
+							label: $this.data('valueLabel')
                         },
                         center: {
                             longitude: $this.data('centerLongitude'),
