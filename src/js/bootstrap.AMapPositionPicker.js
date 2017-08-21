@@ -525,10 +525,12 @@
 
             $addressInput.prop('readonly', isShowOrPick);
             if (isShowOrPick) {
+                mapObj.off('click', mapClickClickHandler);
                 $cancelBtn.hide();
                 $alert.hide();
                 $('#idAMapPositionPickerFloatContainer').hide();
             } else {
+                mapObj.on('click', mapClickClickHandler);
                 $('#idAMapPositionPickerFloatContainer').show();
                 $cancelBtn.show();
             }
