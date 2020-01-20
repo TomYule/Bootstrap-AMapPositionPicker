@@ -12,7 +12,7 @@
         if (typeof jQuery === 'undefined') {
             throw 'AMapPositionPicker requires jQuery to be loaded first';
         }
-        if (typeof  AMap == 'undefined') {
+        if (typeof AMap == 'undefined') {
             throw 'AMapPositionPicker requires AMap to be loaded first';
         }
         factory(jQuery, AMap);
@@ -122,8 +122,7 @@
             if (options.selector instanceof jQuery) {
                 this.$widget = options.selector;
                 this.created = true;
-            }
-            else if ($(options.selector).length > 0) {
+            } else if ($(options.selector).length > 0) {
                 this.$widget = $(options.selector);
                 this.created = true;
             } else {
@@ -403,27 +402,38 @@
             $resetBtn.prop('disabled', true);
             $clearBtn.prop('disabled', true);
             $locationBtn.prop('disabled', true);
+            //实例化城市查询类
+            var citysearch = new AMap.CitySearch();
+            var cityinfo ='全国';
+            //自动获取用户IP，返回当前城市
+            citysearch.getLocalCity(function(status, result) {
+                if (status === 'complete' && result.info === 'OK') {
+                    if (result && result.city && result.bounds) {
+                        cityinfo = result.city;
+                        console.log(cityinfo);
+                    }
+                }
+            });
 
             $searchInput.on('keydown', function (e) {
                 var searchKeyword = $searchInput.val();
                 if (e.which == '13' && searchKeyword.length > 0) { //Enter
-                    //https://lbs.amap.com/api/javascript-api/example/input/get-input-data
                     AMap.plugin('AMap.Autocomplete', function () {
                         // 实例化Autocomplete
                         var autoOptions = {
-                            city: '全国'
+                            city: cityinfo
                         };
                         var autoComplete = new AMap.Autocomplete(autoOptions);
                         autoComplete.search(searchKeyword, function (status, result) {
                             // 搜索成功时，result即是对应的匹配数据
-                            console.log(status);
-                            console.log(result);
+                            // console.log(status);
+                            // console.log(result);
                             $searchResultList.children('li').remove();
                             for (var i in markerList) {
                                 markerList[i].setMap(null);
                             }
                             markerList = [];
-                            if(status === 'complete' && result.info === 'OK') {
+                            if (status == 'complete') {
                                 for (var i in result.tips) {
                                     var poi = result.tips[i];
                                     var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
@@ -444,40 +454,40 @@
                             }
                         })
                     })
-                    /*AMap.service('AMap.PlaceSearch', function () {
-                        var placeSearch = new AMap.PlaceSearch({
-                            pageSize: 6,
-                            pageIndex: 1,
-                            extensions: 'all' // return full address for POI
-                        });
-                        // Search in the given bound
-                        placeSearch.searchInBounds(searchKeyword, mapObj.getBounds(), function (status, result) {
-                            $searchResultList.children('li').remove();
-                            for (var i in markerList) {
-                                markerList[i].setMap(null);
-                            }
-                            markerList = [];
-                            if (status == 'complete') {
-                                for (var i in result.poiList.pois) {
-                                    var poi = result.poiList.pois[i];
-                                    var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
-                                        i: i,
-                                        name: poi.name
-                                    }));
-                                    $searchResultList.append(li);
-                                    // delay to username poi.address
-                                    var mMarker = createMarkerFromLnglat(poi.location.lng, poi.location.lat);
-                                    mMarker.on('click', function (e) {
-                                        selectMarker(e.target);
-                                    });
-                                    markerList.push(mMarker);
-                                }
-                                mapObj.panTo(markerList[0].getPosition());
-                            } else {
-                                $searchPanel.append('<li class="list-group-item disabled"><small>抱歉，暂无找到符合条件的结果。</small></li>');
-                            }
-                        });
-                    });*/
+                    // AMap.service('AMap.PlaceSearch', function () {
+                    //     var placeSearch = new AMap.PlaceSearch({
+                    //         pageSize: 6,
+                    //         pageIndex: 1,
+                    //         extensions: 'all' // return full address for POI
+                    //     });
+                    //     // Search in the given bound
+                    //     placeSearch.searchInBounds(searchKeyword, mapObj.getBounds(), function (status, result) {
+                    //         $searchResultList.children('li').remove();
+                    //         for (var i in markerList) {
+                    //             markerList[i].setMap(null);
+                    //         }
+                    //         markerList = [];
+                    //         if (status == 'complete') {
+                    //             for (var i in result.poiList.pois) {
+                    //                 var poi = result.poiList.pois[i];
+                    //                 var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
+                    //                     i: i,
+                    //                     name: poi.name
+                    //                 }));
+                    //                 $searchResultList.append(li);
+                    //                 // delay to username poi.address
+                    //                 var mMarker = createMarkerFromLnglat(poi.location.lng, poi.location.lat);
+                    //                 mMarker.on('click', function (e) {
+                    //                     selectMarker(e.target);
+                    //                 });
+                    //                 markerList.push(mMarker);
+                    //             }
+                    //             mapObj.panTo(markerList[0].getPosition());
+                    //         } else {
+                    //             $searchPanel.append('<li class="list-group-item disabled"><small>抱歉，暂无找到符合条件的结果。</small></li>');
+                    //         }
+                    //     });
+                    // });
                 }
             });
         }
@@ -673,7 +683,7 @@
             isInstance = true,
             thisMethods = [], //可级联函数列表
             returnValue;
-        if (typeof  options == 'object') {
+        if (typeof options == 'object') {
             return this.each(function () {
                 var $this = $(this);
                 if (!$this.data('AMapPositionPicker')) {
@@ -698,7 +708,7 @@
                     $this.data('AMapPositionPicker', aMapPositionPicker($this, options));
                 }
             });
-        } else if (typeof  options == 'string') {
+        } else if (typeof options == 'string') {
             this.each(function () {
                 var $this = $(this),
                     instance = $this.data('AMapPositionPicker');

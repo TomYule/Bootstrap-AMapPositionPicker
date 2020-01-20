@@ -12,7 +12,7 @@
         if (typeof jQuery === 'undefined') {
             throw 'AMapPositionPicker requires jQuery to be loaded first';
         }
-        if (typeof  AMap == 'undefined') {
+        if (typeof AMap == 'undefined') {
             throw 'AMapPositionPicker requires AMap to be loaded first';
         }
         factory(jQuery, AMap);
@@ -69,6 +69,20 @@
                 );
             }
         };
+        Position.prototype.getDisplayString = function () {
+            if (this.label) {
+                return this.label;
+            } else {
+                return this.address;
+            }
+        };
+        Position.fromOptions = function (options) {
+            if (options instanceof Position) {
+                return options;
+            } else {
+                return new Position(options.longitude, options.latitude, options.address, options.label);
+            }
+        };
         Position.empty = function () {
             return new Position(null, null, "", "");
         };
@@ -99,17 +113,16 @@
                 return selector.substring(1);
             } else {
                 idIndex += 1;
-                return 'id_bapp_i' + idIndex;
+                return 'id_ampp_i' + idIndex;
             }
         }
 
-        function Field(options, position) {
+        function Field(options) {
             this.name = options.name;
             if (options.selector instanceof jQuery) {
                 this.$widget = options.selector;
                 this.created = true;
-            }
-            else if ($(options.selector).length > 0) {
+            } else if ($(options.selector).length > 0) {
                 this.$widget = $(options.selector);
                 this.created = true;
             } else {
@@ -123,22 +136,47 @@
             this.formatter = function (position) {
                 return wrapFormat(options.formatter, position);
             };
-            // 赋值
-            if (Position.validate(position)) {
-                this.$widget.val(this.formatter(position));
-            }
         }
 
-        Field.prototype.render = function (data) {
-            var s = this.formatter(data);
+        Field.prototype.render = function (position, hasPicked) {
+
+            var v;
+            if (hasPicked) {
+                v = this.formatter(position);
+            } else {
+                v = '';
+            }
+            console.log(v);
             if (this.$widget.is('input') || this.$widget.is('textarea')) {
-                this.$widget.val(s);
-            } else if (this.$widget.is('div') || this.$widget.is('td')) {
-                this.$widget.html(s);
+                this.$widget.val(v);
+            } else if (this.$widget.is('div') || this.$widget.is('td') || this.$widget.is('p')) {
+                this.$widget.html(v);
             }
         };
 
         return Field;
+
+    }());
+
+    var FieldManager = (function () {
+        var fields = [];
+
+        function FieldManager() {
+            fields = [];
+        }
+
+        FieldManager.prototype.addField = function (field) {
+            fields.push(field);
+        };
+
+        FieldManager.prototype.render = function (position, hasPicked) {
+            for (var i = 0.; i < fields.length; i++) {
+                fields[i].render(position, hasPicked);
+            }
+
+        };
+
+        return FieldManager;
 
     }());
 
@@ -364,27 +402,38 @@
             $resetBtn.prop('disabled', true);
             $clearBtn.prop('disabled', true);
             $locationBtn.prop('disabled', true);
+            //实例化城市查询类
+            var citysearch = new AMap.CitySearch();
+            var cityinfo ='全国';
+            //自动获取用户IP，返回当前城市
+            citysearch.getLocalCity(function(status, result) {
+                if (status === 'complete' && result.info === 'OK') {
+                    if (result && result.city && result.bounds) {
+                        cityinfo = result.city;
+                        console.log(cityinfo);
+                    }
+                }
+            });
 
             $searchInput.on('keydown', function (e) {
                 var searchKeyword = $searchInput.val();
                 if (e.which == '13' && searchKeyword.length > 0) { //Enter
-                    //https://lbs.amap.com/api/javascript-api/example/input/get-input-data
                     AMap.plugin('AMap.Autocomplete', function () {
                         // 实例化Autocomplete
                         var autoOptions = {
-                            city: '全国'
+                            city: cityinfo
                         };
                         var autoComplete = new AMap.Autocomplete(autoOptions);
                         autoComplete.search(searchKeyword, function (status, result) {
                             // 搜索成功时，result即是对应的匹配数据
-                            console.log(status);
-                            console.log(result);
+                            // console.log(status);
+                            // console.log(result);
                             $searchResultList.children('li').remove();
                             for (var i in markerList) {
                                 markerList[i].setMap(null);
                             }
                             markerList = [];
-                            if(status === 'complete' && result.info === 'OK') {
+                            if (status == 'complete') {
                                 for (var i in result.tips) {
                                     var poi = result.tips[i];
                                     var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
@@ -523,10 +572,12 @@
 
             $addressInput.prop('readonly', isShowOrPick);
             if (isShowOrPick) {
+                mapObj.off('click', mapClickClickHandler);
                 $cancelBtn.hide();
                 $alert.hide();
                 $('#idAMapPositionPickerFloatContainer').hide();
             } else {
+                mapObj.on('click', mapClickClickHandler);
                 $('#idAMapPositionPickerFloatContainer').show();
                 $cancelBtn.show();
             }
@@ -539,6 +590,7 @@
             clearPosition();
             var mMarker = createMarkerFromPosition(position);
             mapObj.panTo(mMarker.getPosition());
+            $modal.find('h4.modal-title').html(position.getDisplayString());
             $addressInput.val(position.address);
             $modal.modal('show');
 
@@ -557,7 +609,7 @@
         var picker = {
             isFirstLoad: false,
             initialPosition: null,
-            inputElList: []
+            fieldManager: new FieldManager()
         };
         var $inputEl = null;
 
@@ -573,9 +625,7 @@
         picker._onPickedCallback = function (mPosition, hasPicked) {
             element.data('position', mPosition);
             $inputEl.val(wrapFormat(options.formatter, mPosition));
-            for (var i in picker.inputElList) {
-                picker.inputElList[i].render(mPosition);
-            }
+            picker.fieldManager.render(mPosition, hasPicked);
             triggerPickedComplete(mPosition, hasPicked);
         };
 
@@ -620,7 +670,7 @@
             if (!iEl.created) {
                 $inputEl.after(iEl.$widget);
             }
-            picker.inputElList.push(iEl);
+            picker.fieldManager.addField(iEl);
         }
 
         picker.opts = options;
@@ -633,7 +683,7 @@
             isInstance = true,
             thisMethods = [], //可级联函数列表
             returnValue;
-        if (typeof  options == 'object') {
+        if (typeof options == 'object') {
             return this.each(function () {
                 var $this = $(this);
                 if (!$this.data('AMapPositionPicker')) {
@@ -647,7 +697,7 @@
                             longitude: $this.data('valueLongitude'),
                             latitude: $this.data('valueLatitude'),
                             address: $this.data('valueAddress'),
-							label: $this.data('valueLabel')
+                            label: $this.data('valueLabel')
                         },
                         center: {
                             longitude: $this.data('centerLongitude'),
@@ -658,7 +708,7 @@
                     $this.data('AMapPositionPicker', aMapPositionPicker($this, options));
                 }
             });
-        } else if (typeof  options == 'string') {
+        } else if (typeof options == 'string') {
             this.each(function () {
                 var $this = $(this),
                     instance = $this.data('AMapPositionPicker');
@@ -693,7 +743,7 @@
     $.extend({AMapPositionPicker: {}});
     $.extend($.AMapPositionPicker, {
         showPositionInMap: function (position) {
-            PICKER_CONTROLLER.showPositionInMap(position);
+            PICKER_CONTROLLER.showPositionInMap(Position.fromOptions(position));
         },
         pluginVersion: '0.8.3'
     });
