@@ -433,7 +433,7 @@
                                 markerList[i].setMap(null);
                             }
                             markerList = [];
-                            if (status == 'complete') {
+                            if(status === 'complete' && result.info === 'OK') {
                                 for (var i in result.tips) {
                                     var poi = result.tips[i];
                                     var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
