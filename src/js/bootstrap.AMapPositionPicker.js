@@ -407,7 +407,44 @@
             $searchInput.on('keydown', function (e) {
                 var searchKeyword = $searchInput.val();
                 if (e.which == '13' && searchKeyword.length > 0) { //Enter
-                    AMap.service('AMap.PlaceSearch', function () {
+                    //https://lbs.amap.com/api/javascript-api/example/input/get-input-data
+                    AMap.plugin('AMap.Autocomplete', function () {
+                        // 实例化Autocomplete
+                        var autoOptions = {
+                            city: '全国'
+                        };
+                        var autoComplete = new AMap.Autocomplete(autoOptions);
+                        autoComplete.search(searchKeyword, function (status, result) {
+                            // 搜索成功时，result即是对应的匹配数据
+                            console.log(status);
+                            console.log(result);
+                            $searchResultList.children('li').remove();
+                            for (var i in markerList) {
+                                markerList[i].setMap(null);
+                            }
+                            markerList = [];
+                            if(status === 'complete' && result.info === 'OK') {
+                                for (var i in result.tips) {
+                                    var poi = result.tips[i];
+                                    var li = $('<li data-poi-index="{i}" class="list-group-item"><small>{name}</small></li>'.format({
+                                        i: i,
+                                        name: poi.name
+                                    }));
+                                    $searchResultList.append(li);
+                                    // delay to username poi.address
+                                    var mMarker = createMarkerFromLnglat(poi.location.lng, poi.location.lat);
+                                    mMarker.on('click', function (e) {
+                                        selectMarker(e.target);
+                                    });
+                                    markerList.push(mMarker);
+                                }
+                                mapObj.panTo(markerList[0].getPosition());
+                            } else {
+                                $searchPanel.append('<li class="list-group-item disabled"><small>抱歉，暂无找到符合条件的结果。</small></li>');
+                            }
+                        })
+                    })
+                    /*AMap.service('AMap.PlaceSearch', function () {
                         var placeSearch = new AMap.PlaceSearch({
                             pageSize: 6,
                             pageIndex: 1,
@@ -440,7 +477,7 @@
                                 $searchPanel.append('<li class="list-group-item disabled"><small>抱歉，暂无找到符合条件的结果。</small></li>');
                             }
                         });
-                    });
+                    });*/
                 }
             });
         }
