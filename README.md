@@ -2,7 +2,7 @@
 
 ## 概述
 
-[AMapPositionPicker](https://www.oschina.net/p/amappositionpicker)是一款基于高德地图的位置选择插件，使用jQuery开发。
+[AMapPositionPicker])是一款基于高德地图的位置选择插件，使用jQuery开发。
 
 ## 特性
 
@@ -44,7 +44,7 @@ JS代码
 $("#id_address_input").AMapPositionPicker();
 ```
 
-更多示例请可查看 [开发文档](http://kinegratii.oschina.io/bootstrap-amappositionpicker/index.html)。
+更多示例请可查看 。
 
 ## 构建
 
@@ -62,3 +62,5 @@ gulp release
 
 - kinegratii@gmail.com
 - [OSC个人主页](https://my.oschina.net/kinegratii)
+
+原作者没有后续更新  本人优化后再提交
